@@ -14,6 +14,9 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import BuyPage from './pages/BuyPage';
 import SellPage from './pages/SellPage';
+import RentalPage from './pages/RentalPage';
+import RentalOfferPage from './pages/RentalOfferPage';
+import SoldLeasedPage from './pages/SoldLeasedPage';
 const API = import.meta.env.VITE_API_URL;
 
 function App() {
@@ -62,8 +65,15 @@ function App() {
         return <AboutPage onNavigate={setCurrentPage} />;
       case 'contact':
         return <ContactPage />;
+      case 'rental-property':
+      case 'rental-wanted':
+        return <RentalPage />;
+      case 'rental-offer':
+        return <RentalOfferPage />;
       case 'book-visit':
         return <BookVisitPage />;
+      case 'sold-leased':
+        return <SoldLeasedPage />;
       case 'admin':
         if (!isAdminAuthenticated) {
           return <AdminLogin 

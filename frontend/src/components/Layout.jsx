@@ -1,6 +1,8 @@
 import React from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import TrustStats from './TrustStats';
+import CTABanner from './CTABanner';
 
 const Layout = ({ children, onNavigate, currentPage }) => {
   const isAdminPage = currentPage === 'admin';
@@ -9,6 +11,14 @@ const Layout = ({ children, onNavigate, currentPage }) => {
     <div className="layout">
       {!isAdminPage && <Navbar onNavigate={onNavigate} currentPage={currentPage} />}
       <main>{children}</main>
+      
+      {!isAdminPage && currentPage === 'sold-leased' && (
+        <>
+          <TrustStats />
+          <CTABanner onAction={() => onNavigate('book-visit')} />
+        </>
+      )}
+
       {!isAdminPage && <Footer onNavigate={onNavigate} />}
       
       {/* Sticky Book Visit Button */}

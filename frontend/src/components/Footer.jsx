@@ -25,20 +25,20 @@ const Footer = ({ onNavigate }) => {
         <div className="footer-links" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h4 className="serif">Quick Links</h4>
           <ul>
-            <li><button onClick={() => onNavigate('plots')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Plots</button></li>
-            <li><button onClick={() => onNavigate('locations')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Locations</button></li>
-            <li><button onClick={() => onNavigate('projects')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Projects</button></li>
-            <li><button onClick={() => onNavigate('amenities')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Amenities</button></li>
+            <li><button onClick={() => onNavigate('home')} className="footer-link-btn">Home</button></li>
+            <li><button onClick={() => onNavigate('about')} className="footer-link-btn">About</button></li>
+            <li><button onClick={() => onNavigate('sell')} className="footer-link-btn">Sell Property</button></li>
+            <li><button onClick={() => onNavigate('buy')} className="footer-link-btn">Buy Property</button></li>
           </ul>
         </div>
 
         <div className="footer-links" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h4 className="serif">Company</h4>
           <ul>
-            <li><button onClick={() => onNavigate('about')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Our Vision</button></li>
-            <li><button onClick={() => onNavigate('about')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Success Stories</button></li>
-            <li><button onClick={() => onNavigate('contact')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Contact Us</button></li>
-            <li><button onClick={() => onNavigate('book-visit')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Book Visit</button></li>
+            <li><button onClick={() => onNavigate('rental-property')} className="footer-link-btn">Rental Property</button></li>
+            <li><button onClick={() => onNavigate('sold-leased')} className="footer-link-btn">Sold & Leased</button></li>
+            <li><button onClick={() => onNavigate('contact')} className="footer-link-btn">Contact Us</button></li>
+            <li><button onClick={() => onNavigate('book-visit')} className="footer-link-btn">Book Visit</button></li>
           </ul>
         </div>
 

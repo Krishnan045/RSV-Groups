@@ -37,22 +37,35 @@ const Navbar = ({ onNavigate, currentPage }) => {
         { name: 'Land', id: 'sell-land' }
       ]
     },
-    { name: 'Rental property', id: 'rental-property' },
-    { name: 'Sold leased', id: 'sold-leased' },
+    {
+      name: 'Rental property', id: 'rental-property',
+      dropdown: [
+        { name: 'Wanted', id: 'rental-wanted' },
+        { name: 'Offer', id: 'rental-offer' }
+      ]
+    },
+    { name: 'Sold & Leased', id: 'sold-leased' },
     { name: 'Contact', id: 'contact' },
   ];
 
   const handleNavClick = (id) => {
-    if (id === 'rental-property' || id === 'sold-leased') return;
     onNavigate(id);
     setIsOpen(false);
     setDropdownOpen(null);
   };
 
-  const isLightPage = ['sell'].some(page => currentPage.startsWith(page));
+  // Determine if the link (or any of its dropdown items) matches the current page
+  const isLinkActive = (link) => {
+    if (currentPage === link.id) return true;
+    if (link.dropdown && link.dropdown.some(item => currentPage === item.id)) return true;
+    if (currentPage.startsWith(link.id)) return true;
+    return false;
+  };
+
+  const isLightPage = ['sell', 'admin'].some(page => currentPage.startsWith(page));
 
   return (
-    <nav className={`navbar ${isScrolled || isLightPage ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`}>
+    <nav className={`navbar ${isScrolled || isLightPage ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`} style={{ zIndex: 1100 }}>
       <div className="container nav-content">
         <div className="logo-section" onClick={() => handleNavClick('home')} style={{ cursor: 'pointer' }}>
           <img src={logoImg} alt="RSV GROUPS logo" className="navbar-logo" />
@@ -62,7 +75,7 @@ const Navbar = ({ onNavigate, currentPage }) => {
           </div>
         </div>
 
-        <ul className={`nav-links ${isOpen ? 'active' : ''}`}>
+        <ul className={`nav-links ${isOpen ? 'active' : ''}`} style={{ gap: '2rem' }}>
           {navLinks.map((link) => (
             <li
               key={link.id}
@@ -72,10 +85,18 @@ const Navbar = ({ onNavigate, currentPage }) => {
               style={link.dropdown ? { position: 'relative' } : {}}
             >
               <button
-                onClick={() => handleNavClick(link.id)}
-                className={`nav-link-btn ${currentPage === link.id ? 'active' : ''}`}
+                onClick={(e) => {
+                  if (link.dropdown) {
+                    e.preventDefault();
+                    setDropdownOpen(dropdownOpen === link.id ? null : link.id);
+                  } else {
+                    handleNavClick(link.id);
+                  }
+                }}
+                className={`nav-link-btn ${isLinkActive(link) ? 'active' : ''}`}
+                style={{ fontSize: '0.85rem' }}
               >
-                {link.name} {link.dropdown && <span style={{ fontSize: '0.6em', marginLeft: '4px', verticalAlign: 'middle' }}>▼</span>}
+                {link.name} {link.dropdown && <span style={{ fontSize: '0.7em', marginLeft: '6px', opacity: 0.6 }}>▼</span>}
               </button>
               {link.dropdown && dropdownOpen === link.id && (
                 <div className="dropdown-menu">

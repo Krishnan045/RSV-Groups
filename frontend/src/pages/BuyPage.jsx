@@ -46,28 +46,28 @@ const BuyPage = ({ category = 'all' }) => {
     }
   }, []);
 
-  const properties = [
-    { title: "Luxury Horizon Villa", location: "OMR, Chennai", sqft: "2400 Sq.ft", price: "5.2 Cr", type: "residential", img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop", ownerName: "Rajesh Kumar", phone: "+91 98401 23456", email: "rajesh.k@example.com" },
-    { title: "Elite Commercial Hub", location: "Guindy, Chennai", sqft: "5000 Sq.ft", price: "12.5 Cr", type: "commercial", img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop", ownerName: "Meenakshi Properties", phone: "+91 99402 34567", email: "contact@meenakshi.in" },
-    { title: "Sunrise Seaside Plot", location: "ECR, Chennai", sqft: "1200 Sq.ft", price: "1.8 Cr", type: "land", img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2064&auto=format&fit=crop", ownerName: "Senthil Nathan", phone: "+91 98843 45678", email: "senthil.ecr@example.com" },
-    { title: "Pinegrove Residencies", location: "Tambaram", sqft: "1500 Sq.ft", price: "3.2 Cr", type: "residential", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop", ownerName: "Priya Anand", phone: "+91 97914 56789", email: "priya.tbm@example.com" },
-    { title: "Tech Park Annex", location: "Taramani", sqft: "12000 Sq.ft", price: "25 Cr", type: "commercial", img: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop", ownerName: "TechLand Inv.", phone: "+91 94445 67890", email: "invest@techland.in" },
-    { title: "Green Acres Farmland", location: "Chengalpattu", sqft: "2 Acres", price: "85 L", type: "land", img: "https://images.unsplash.com/photo-1629851605336-f3ccb0eceb9e?q=80&w=2074&auto=format&fit=crop", ownerName: "Karthikeyan", phone: "+91 99626 78901", email: "karthi.farms@example.com" }
-  ];
+  const [allProperties, setAllProperties] = useState([]);
+
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('user_properties') || '[]');
+    setAllProperties(saved);
+  }, []);
 
   const parsePrice = (priceStr) => {
     if (!priceStr) return 0;
-    const lower = priceStr.toLowerCase();
+    const lower = String(priceStr).toLowerCase();
     let num = parseFloat(lower.replace(/[^0-9.]/g, ''));
     if (lower.includes('cr')) return num * 10000000;
     if (lower.includes('l')) return num * 100000;
     return num;
   };
 
-  const allProperties = [...userProps, ...properties];
-
   const filtered = allProperties.filter(p => {
-    if (p.status && p.status !== 'approved') return false;
+    // Show only 'buy' category and 'approved' status, excluding 'sold'
+    if (p.category !== 'buy') return false;
+    if (p.status !== 'approved') return false;
+    if (p.isSoldLeased) return false;
+    
     if (appliedFilters.propertyType && p.type !== appliedFilters.propertyType) return false;
     if (appliedFilters.location && !p.location.toLowerCase().includes(appliedFilters.location.toLowerCase())) return false;
     
