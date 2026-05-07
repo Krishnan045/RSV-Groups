@@ -251,9 +251,28 @@ const AdminDashboard = ({ onLogout }) => {
          status: editingItem ? editingItem.status : 'approved'
       };
 
-      let updated = editingItem ? soldProperties.map(p => p.id === editingItem.id ? newSold : p) : [newSold, ...soldProperties];
-      setSoldProperties(updated);
-      saveToLB('rsv_sold_properties', updated);
+      if (editingItem && editingItem.isFromInventory) {
+         // Update in primary properties inventory
+         const updatedProps = properties.map(p => 
+            p.id === editingItem.id ? { 
+               ...p, 
+               title: newSold.title,
+               location: newSold.location,
+               price: newSold.price,
+               size: newSold.sqft,
+               type: newSold.type,
+               customerName: newSold.customerName
+            } : p
+         );
+         setProperties(updatedProps);
+         saveToLB('user_properties', updatedProps);
+      } else {
+         // Update or add to standalone sold records
+         let updated = editingItem ? soldProperties.map(p => p.id === editingItem.id ? newSold : p) : [newSold, ...soldProperties];
+         setSoldProperties(updated);
+         saveToLB('rsv_sold_properties', updated);
+      }
+
       setShowAddSoldModal(false);
       setEditingItem(null);
    };
@@ -892,24 +911,50 @@ const AdminDashboard = ({ onLogout }) => {
                                  <button className="action-icon-btn" title="View Details" onClick={() => setViewingSoldItem(prop)}><Eye size={14} /></button>
                                  <button className="action-icon-btn" title="Edit" onClick={() => { setEditingItem(prop); setShowAddSoldModal(true); }}><Edit3 size={14} /></button>
                                  <button className="action-icon-btn" title="Approve" onClick={() => {
-                                    const updated = soldProperties.map(p => p.id === prop.id ? { ...p, status: 'approved' } : p);
-                                    setSoldProperties(updated);
-                                    localStorage.setItem('rsv_sold_properties', JSON.stringify(updated));
+                                    if (prop.isFromInventory) {
+                                       const updated = properties.map(p => p.id === prop.id ? { ...p, status: 'sold' } : p);
+                                       setProperties(updated);
+                                       saveToLB('user_properties', updated);
+                                    } else {
+                                       const updated = soldProperties.map(p => p.id === prop.id ? { ...p, status: 'approved' } : p);
+                                       setSoldProperties(updated);
+                                       saveToLB('rsv_sold_properties', updated);
+                                    }
                                  }}><CheckCircle size={14} color="#2ed573" /></button>
                                  <button className="action-icon-btn" title="Pending" onClick={() => {
-                                    const updated = soldProperties.map(p => p.id === prop.id ? { ...p, status: 'pending' } : p);
-                                    setSoldProperties(updated);
-                                    localStorage.setItem('rsv_sold_properties', JSON.stringify(updated));
+                                    if (prop.isFromInventory) {
+                                       const updated = properties.map(p => p.id === prop.id ? { ...p, status: 'booked' } : p);
+                                       setProperties(updated);
+                                       saveToLB('user_properties', updated);
+                                    } else {
+                                       const updated = soldProperties.map(p => p.id === prop.id ? { ...p, status: 'pending' } : p);
+                                       setSoldProperties(updated);
+                                       saveToLB('rsv_sold_properties', updated);
+                                    }
                                  }}><Clock size={14} color="#ffa502" /></button>
                                  <button className="action-icon-btn" title="Reject" onClick={() => {
-                                    const updated = soldProperties.map(p => p.id === prop.id ? { ...p, status: 'rejected' } : p);
-                                    setSoldProperties(updated);
-                                    localStorage.setItem('rsv_sold_properties', JSON.stringify(updated));
+                                    if (prop.isFromInventory) {
+                                       const updated = properties.map(p => p.id === prop.id ? { ...p, status: 'available' } : p);
+                                       setProperties(updated);
+                                       saveToLB('user_properties', updated);
+                                    } else {
+                                       const updated = soldProperties.map(p => p.id === prop.id ? { ...p, status: 'rejected' } : p);
+                                       setSoldProperties(updated);
+                                       saveToLB('rsv_sold_properties', updated);
+                                    }
                                  }}><ThumbsDown size={14} color="#eb4d4b" /></button>
                                  <button className="action-icon-btn" title="Delete" onClick={() => {
-                                    const updated = soldProperties.filter(p => p.id !== prop.id);
-                                    setSoldProperties(updated);
-                                    localStorage.setItem('rsv_sold_properties', JSON.stringify(updated));
+                                    if (window.confirm("Are you sure you want to remove this record?")) {
+                                       if (prop.isFromInventory) {
+                                          const updated = properties.map(p => p.id === prop.id ? { ...p, status: 'available' } : p);
+                                          setProperties(updated);
+                                          saveToLB('user_properties', updated);
+                                       } else {
+                                          const updated = soldProperties.filter(p => p.id !== prop.id);
+                                          setSoldProperties(updated);
+                                          saveToLB('rsv_sold_properties', updated);
+                                       }
+                                    }
                                  }}><Trash2 size={14} color="#eb4d4b" /></button>
                               </div>
                            </td>
