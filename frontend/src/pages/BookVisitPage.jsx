@@ -3,7 +3,35 @@ import { motion } from 'framer-motion';
 import { MapPin, Phone, User, Calendar, Clock, ShieldCheck, CheckCircle2, Navigation, FileCheck } from 'lucide-react';
 
 const BookVisitPage = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    date: '',
+    location: 'The Royal Estate (OMR)'
+  });
   const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Save to localStorage for Admin Dashboard
+    const newVisit = {
+      id: Date.now(),
+      name: formData.name,
+      phone: formData.phone,
+      date: new Date(formData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      time: 'TBD',
+      location: formData.location,
+      status: 'Pending'
+    };
+    
+    const existingVisits = JSON.parse(localStorage.getItem('rsv_visits') || '[]');
+    localStorage.setItem('rsv_visits', JSON.stringify([newVisit, ...existingVisits]));
+
+    setSubmitted(true);
+    setFormData({ name: '', phone: '', date: '', location: 'The Royal Estate (OMR)' });
+  };
+
 
   return (
     <div className="book-visit-page-detailed">
@@ -38,14 +66,14 @@ const BookVisitPage = () => {
             <h2 className="section-title serif">What to <span className="highlight">Expect</span></h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4rem' }}>
+          <div className="booking-features-grid">
             {[
               { icon: <Navigation size={32} />, title: "Guided Site Tour", desc: "A personal walkthrough of the entire layout and amenities." },
               { icon: <Map size={32} />, title: "Layout Explanation", desc: "Detailed brief on plot markings, road widths, and future plans." },
               { icon: <TrendingUp size={32} />, title: "Investment Advice", desc: "Consultation on ROI potential and market trends in the area." },
               { icon: <FileCheck size={32} />, title: "Doc. Clarity", desc: "Review legal papers, DTCP approvals, and parent documents." }
             ].map((item, i) => (
-              <div key={i} style={{ padding: '3rem', background: 'white', borderRadius: '20px', border: '1px solid #eee', textAlign: 'center' }}>
+              <div key={i} className="booking-feature-card">
                 <div style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>{item.icon}</div>
                 <h4 className="serif" style={{ fontSize: '1.3rem', marginBottom: '0.75rem' }}>{item.title}</h4>
                 <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>{item.desc}</p>
@@ -65,7 +93,7 @@ const BookVisitPage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 style={{ textAlign: 'center', padding: '3rem 0' }}
               >
-                <CheckCircle2 size={80} color="var(--accent-emerald)" style={{ marginBottom: '2rem' }} />
+                <CheckCircle2 size={80} color="var(--accent-gold)" style={{ marginBottom: '2rem' }} />
                 <h2 className="serif" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Visit Scheduled!</h2>
                 <p style={{ color: 'var(--text-light)' }}>Our team will contact you shortly to confirm your visit details.</p>
                 <button 
@@ -76,25 +104,49 @@ const BookVisitPage = () => {
                 </button>
               </motion.div>
             ) : (
-              <form style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                       <User size={18} color="var(--accent-gold)" />
-                      <input type="text" placeholder="Full Name" style={{ border: 'none', outline: 'none', width: '100%', font: 'inherit' }} />
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="Full Name" 
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        style={{ border: 'none', outline: 'none', width: '100%', font: 'inherit' }} 
+                      />
                    </div>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                       <Phone size={18} color="var(--accent-gold)" />
-                      <input type="tel" placeholder="Phone Number" style={{ border: 'none', outline: 'none', width: '100%', font: 'inherit' }} />
+                      <input 
+                        type="tel" 
+                        required
+                        placeholder="Phone Number" 
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        style={{ border: 'none', outline: 'none', width: '100%', font: 'inherit' }} 
+                      />
                    </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                       <Calendar size={18} color="var(--accent-gold)" />
-                      <input type="date" style={{ border: 'none', outline: 'none', width: '100%', font: 'inherit' }} />
+                      <input 
+                        type="date" 
+                        required
+                        value={formData.date}
+                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        style={{ border: 'none', outline: 'none', width: '100%', font: 'inherit' }} 
+                      />
                    </div>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                       <MapPin size={18} color="var(--accent-gold)" />
-                      <select style={{ border: 'none', outline: 'none', width: '100%', font: 'inherit', background: 'transparent' }}>
+                      <select 
+                        value={formData.location}
+                        onChange={(e) => setFormData({...formData, location: e.target.value})}
+                        style={{ border: 'none', outline: 'none', width: '100%', font: 'inherit', background: 'transparent' }}
+                      >
                          <option>The Royal Estate (OMR)</option>
                          <option>Emerald Valley (ECR)</option>
                          <option>Heritage West (GST)</option>
@@ -102,9 +154,17 @@ const BookVisitPage = () => {
                    </div>
                 </div>
                 <button 
+                  type="submit"
                   className="submit-btn" 
-                  style={{ background: 'var(--primary-dark)', color: 'white', padding: '1.2rem', fontWeight: 700, borderRadius: '4px', cursor: 'pointer' }}
-                  onClick={(e) => { e.preventDefault(); setSubmitted(true); }}
+                  style={{ 
+                    background: 'var(--primary-dark)', 
+                    color: 'white', 
+                    padding: '1.2rem', 
+                    fontWeight: 700, 
+                    borderRadius: '4px', 
+                    cursor: 'pointer',
+                    transition: 'var(--transition-smooth)'
+                  }}
                 >
                    CONFIRM SITE VISIT
                 </button>
@@ -133,10 +193,10 @@ const BookVisitPage = () => {
       </section>
 
       {/* Confirmation Message (Trust Section) */}
-      <section style={{ padding: '8rem 0', background: 'var(--accent-emerald)', color: 'white', textAlign: 'center' }}>
+      <section style={{ padding: '8rem 0', background: 'var(--primary-dark)', color: 'white', textAlign: 'center' }}>
          <div className="container">
-            <h3 className="serif" style={{ fontSize: '2.5rem' }}>Safe & Secure Investment.</h3>
-            <p style={{ marginTop: '1rem', opacity: 0.7 }}>Over 500+ site visits organized every month across Chennai.</p>
+            <h3 className="serif" style={{ fontSize: '2.5rem' }}>Safe & Secure <span className="highlight">Investment.</span></h3>
+            <p style={{ marginTop: '1rem', opacity: 0.8, color: 'var(--accent-gold)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '2px' }}>Over 500+ site visits organized every month across Chennai.</p>
          </div>
       </section>
     </div>

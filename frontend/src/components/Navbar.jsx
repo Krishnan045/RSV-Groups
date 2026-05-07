@@ -127,9 +127,9 @@ const Navbar = ({ onNavigate, currentPage }) => {
           </button>
           <button className="menu-toggle" onClick={toggleMenu} aria-label="Toggle Menu">
             {isOpen ? (
-              <X size={24} color={isScrolled || isLightPage ? "#0F1A11" : "white"} />
+              <X size={24} color="white" />
             ) : (
-              <Menu size={24} color={isScrolled || isLightPage ? "#0F1A11" : "white"} />
+              <Menu size={24} color="white" />
             )}
           </button>
         </div>

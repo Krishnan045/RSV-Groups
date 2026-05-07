@@ -15,7 +15,6 @@ const Layout = ({ children, onNavigate, currentPage }) => {
       {!isAdminPage && currentPage === 'sold-leased' && (
         <>
           <TrustStats />
-          <CTABanner onAction={() => onNavigate('book-visit')} />
         </>
       )}
 

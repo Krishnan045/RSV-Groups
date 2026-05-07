@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { X } from 'lucide-react';
 
 const SellPage = ({ category = '' }) => {
   const [formData, setFormData] = useState({
@@ -23,6 +24,8 @@ const SellPage = ({ category = '' }) => {
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [fileObjects, setFileObjects] = useState([]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -49,10 +52,14 @@ const SellPage = ({ category = '' }) => {
         location: formData.location || 'Chennai',
         price: formData.price || 'Contact for Price',
         type: resolvedType,
+        category: 'buy',
         img: base64Img || 'https://images.unsplash.com/photo-1629851605336-f3ccb0eceb9e?q=80&w=2074&auto=format&fit=crop',
         ownerName: formData.ownerName || 'Verified Owner',
         phone: formData.phone || formData.mobile || '+91 9988776655',
         email: formData.email,
+        propertyAddress: formData.propertyAddress,
+        ownerAddress: formData.ownerAddress,
+        additionalInfo: formData.additionalInfo,
         sqft: "As per Document",
         status: 'pending',
         id: Date.now()
@@ -64,14 +71,26 @@ const SellPage = ({ category = '' }) => {
       setShowSuccess(true);
     };
 
-    if (formData.image) {
+    if (fileObjects.length > 0) {
       const reader = new FileReader();
       reader.onloadend = () => processSubmission(reader.result);
-      reader.readAsDataURL(formData.image);
+      reader.readAsDataURL(fileObjects[0]);
     } else {
       processSubmission(null);
     }
   };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setFileObjects(prev => [...prev, ...files]);
+    setSelectedFiles(prev => [...prev, ...files.map(f => f.name)]);
+  };
+
+  const removeFile = (index) => {
+    setFileObjects(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
 
   const labelStyle = { fontWeight: 'bold', fontSize: '0.85rem', color: '#333', paddingBottom: '4px' };
   const inputStyle = { width: '100%', padding: '8px', border: '1px solid #aaa', borderRadius: '3px', fontSize: '0.85rem', outline: 'none' };
@@ -140,8 +159,8 @@ const SellPage = ({ category = '' }) => {
           <h2 style={{ ...sectionHeaderStyle, marginTop: 0 }}>Property Details</h2>
           <div className="responsive-form-grid">
             
-            <div style={labelStyle}>Property Name <span style={reqStyle}>*</span></div>
-            <div><input type="text" name="propertyName" value={formData.propertyName} onChange={handleInputChange} style={{ ...inputStyle, maxWidth: '250px' }} /></div>
+            <div style={labelStyle}>Land / Plot Name <span style={reqStyle}>*</span></div>
+            <div><input type="text" name="propertyName" placeholder="e.g. Royal Estate Plot 42" value={formData.propertyName} onChange={handleInputChange} style={{ ...inputStyle, maxWidth: '250px' }} /></div>
 
             <div style={labelStyle}>Residential / Commercial <span style={reqStyle}>*</span></div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingTop: '6px', fontSize: '0.85rem' }}>
@@ -176,13 +195,30 @@ const SellPage = ({ category = '' }) => {
             <div><textarea name="additionalInfo" value={formData.additionalInfo} onChange={handleInputChange} rows="4" placeholder="About Property" style={{ ...inputStyle, maxWidth: '350px', resize: 'vertical' }}></textarea></div>
 
             <div style={labelStyle}>Property Image <span style={reqStyle}>*</span></div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div>
-                <input type="file" accept="image/*" onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })} style={{ ...inputStyle, maxWidth: '250px', padding: '2px' }} />
-                <div style={{ color: '#d32f2f', fontSize: '0.75rem', marginTop: '2px' }}>Image size should be lesser than 5 MB</div>
+            <div>
+              <div style={{ ...inputStyle, padding: '1.5rem', border: '2px dashed #ccc', textAlign: 'center', cursor: 'pointer', position: 'relative' }}>
+                <input 
+                  type="file" 
+                  multiple 
+                  accept="image/*" 
+                  onChange={handleFileChange} 
+                  style={{ opacity: 0, position: 'absolute', inset: 0, width: '100%', cursor: 'pointer' }} 
+                />
+                <span style={{ fontSize: '0.9rem', color: '#666' }}>
+                  {selectedFiles.length > 0 ? `${selectedFiles.length} files selected` : 'Click to upload property images'}
+                </span>
               </div>
-              <div><input type="file" style={{ ...inputStyle, maxWidth: '250px', padding: '2px' }} /></div>
-              <div><input type="file" style={{ ...inputStyle, maxWidth: '250px', padding: '2px' }} /></div>
+              {selectedFiles.length > 0 && (
+                <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {selectedFiles.map((name, i) => (
+                    <span key={i} style={{ background: '#f0f0f0', padding: '4px 10px', borderRadius: '3px', fontSize: '0.75rem', border: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {name}
+                      <X size={12} style={{ cursor: 'pointer', opacity: 0.6 }} onClick={() => removeFile(i)} />
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div style={{ color: '#d32f2f', fontSize: '0.75rem', marginTop: '4px' }}>Image size should be lesser than 5 MB</div>
             </div>
           </div>
 

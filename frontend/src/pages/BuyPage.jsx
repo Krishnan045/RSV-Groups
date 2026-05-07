@@ -63,9 +63,9 @@ const BuyPage = ({ category = 'all' }) => {
   };
 
   const filtered = allProperties.filter(p => {
-    // Show only 'buy' category and 'approved' status, excluding 'sold'
-    if (p.category !== 'buy') return false;
-    if (p.status !== 'approved') return false;
+    // Show only 'buy' category (including land/plots) and 'available' status, excluding 'sold'
+    if (p.category !== 'buy' && p.type !== 'land' && p.type !== 'plot') return false;
+    if (p.status !== 'available') return false;
     if (p.isSoldLeased) return false;
     
     if (appliedFilters.propertyType && p.type !== appliedFilters.propertyType) return false;

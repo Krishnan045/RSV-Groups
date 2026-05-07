@@ -1,52 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, MapPin, Ruler, IndianRupee, ShieldCheck, Map, ArrowRight, Filter, CheckCircle2 } from 'lucide-react';
+import { Search, MapPin, Ruler, IndianRupee, ShieldCheck, Map, ArrowRight, Filter, CheckCircle2, ChevronDown } from 'lucide-react';
 
 const PlotsPage = () => {
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const plots = [
-    {
-      id: 1,
-      name: "The Royal Estate",
-      location: "OMR, Chennai",
-      size: "1200 - 2400 Sq.ft",
-      price: "45L",
-      tag: "Hot Location",
-      image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800",
-      approval: "DTCP Approved"
-    },
-    {
-      id: 2,
-      name: "Emerald Valley",
-      location: "ECR, Chennai",
-      size: "1500 - 3000 Sq.ft",
-      price: "85L",
-      tag: "Limited Units",
-      image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=800",
-      approval: "CMDA Approved"
-    },
-    {
-      id: 3,
-      name: "Pinecrest Haven",
-      location: "GST Road, Chennai",
-      size: "800 - 1800 Sq.ft",
-      price: "32L",
-      tag: "Investor's Choice",
-      image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800",
-      approval: "DTCP Approved"
-    },
-    {
-      id: 4,
-      name: "Oragadam Heights",
-      location: "Oragadam, Chennai",
-      size: "1000 - 2000 Sq.ft",
-      price: "28L",
-      tag: "High Growth",
-      image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=800",
-      approval: "DTCP Approved"
-    }
-  ];
+  const [allPlots, setAllPlots] = useState([]);
+
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('user_properties') || '[]');
+    // Filter for properties that are 'land' or 'buy' category and are 'available'
+    const dynamicPlots = saved.filter(p => 
+      (p.type === 'land' || p.category === 'buy') && 
+      p.status === 'available' && 
+      !p.isSoldLeased
+    ).map(p => ({
+      id: p.id,
+      name: p.title,
+      location: p.location,
+      size: p.size,
+      price: p.price,
+      tag: "New Listing",
+      image: p.img || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800",
+      approval: p.surveyNumber ? `Survey: ${p.surveyNumber}` : "Verified"
+    }));
+
+    const featuredPlots = [
+      {
+        id: 'f1',
+        name: "The Royal Estate",
+        location: "OMR, Chennai",
+        size: "1200 - 2400 Sq.ft",
+        price: "45L",
+        tag: "Hot Location",
+        image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800",
+        approval: "DTCP Approved"
+      },
+      {
+        id: 'f2',
+        name: "Emerald Valley",
+        location: "ECR, Chennai",
+        size: "1500 - 3000 Sq.ft",
+        price: "85L",
+        tag: "Limited Units",
+        image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=800",
+        approval: "CMDA Approved"
+      }
+    ];
+
+    setAllPlots([...featuredPlots, ...dynamicPlots]);
+  }, []);
 
   return (
     <div className="plots-page-detailed">
@@ -138,7 +141,7 @@ const PlotsPage = () => {
           </div>
 
           <div className="projects-grid">
-            {plots.map((plot) => (
+            {allPlots.map((plot) => (
               <motion.div 
                 key={plot.id}
                 whileHover={{ y: -10 }}
@@ -243,11 +246,7 @@ const PlotsPage = () => {
   );
 };
 
-const ChevronDown = ({ size }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m6 9 6 6 6-6"/>
-  </svg>
-);
+
 
 export default PlotsPage;
 

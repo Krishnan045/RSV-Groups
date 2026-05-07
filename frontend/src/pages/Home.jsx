@@ -5,7 +5,7 @@ import FeaturedProjects from '../components/FeaturedProjects';
 import Amenities from '../components/Amenities';
 import Locations from '../components/Locations';
 import Testimonials from '../components/Testimonials';
-import LatestUpdates from '../components/LatestUpdates';
+import SoldShowcase from '../components/SoldShowcase';
 
 const Home = ({ onNavigate }) => {
   return (
@@ -13,10 +13,10 @@ const Home = ({ onNavigate }) => {
       <Hero onNavigate={onNavigate} />
       <SearchBar onSearch={() => onNavigate('buy')} />
       <FeaturedProjects />
+      <SoldShowcase />
       <Amenities />
       <Locations onSelectLocation={() => onNavigate('locations')} />
       <Testimonials />
-      <LatestUpdates />
     </>
   );
 };

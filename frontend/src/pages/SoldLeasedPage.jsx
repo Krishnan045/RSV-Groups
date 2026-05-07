@@ -1,74 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Home, Building, TreePine, Ruler, Sparkles, CheckCircle2, ChevronRight } from 'lucide-react';
+import SoldSidebarBox from '../components/SoldSidebarBox';
 
 const SoldLeasedPage = () => {
   const [soldProperties, setSoldProperties] = useState([]);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('user_properties') || '[]');
-    const sold = saved.filter(p => p.isSoldLeased || p.status === 'sold' || p.status === 'leased');
+    // Fetch from rsv_sold_properties (Success Stories)
+    const savedSold = JSON.parse(localStorage.getItem('rsv_sold_properties') || '[]');
+    const approved = savedSold.filter(p => p.status === 'approved');
     
-    if (sold.length === 0) {
-      setSoldProperties([
-        { 
-          title: "Land With 6BHK Independent House", 
-          location: "Sathyapuri Street, West Mambalam", 
-          sqft: "2475 Sq.ft", 
-          price: "5,80,00,000", 
-          type: "residential", 
-          status: "sold",
-          customerName: "Jagadeesan M",
-          surveyNumber: "124/2A",
-          extent: "2475 Sq.ft",
-          represented: "Buyer"
-        },
-        { 
-          title: "2BHK Flat", 
-          location: "Vijaya Nagar North Extension, Velachery", 
-          sqft: "800 Sq.ft", 
-          price: "72,00,000", 
-          type: "residential", 
-          status: "sold",
-          customerName: "Srinivasan V G, Rajesh S",
-          surveyNumber: "88/1B",
-          extent: "800 Sq.ft",
-          represented: "Seller"
-        },
-        { 
-          title: "2.5BHK Flat", 
-          location: "2nd Main Road, Kasturibai Nagar, Adyar", 
-          sqft: "1055 Sq.ft", 
-          price: "1,25,00,000", 
-          type: "residential", 
-          status: "sold",
-          customerName: "Ashok Kumar N, Ravi Kumar S, Kavitha A",
-          represented: "Both Buyer & Seller"
-        },
-        { 
-          title: "2BHK Flat", 
-          location: "Murugu Nagar Extension, Velachery", 
-          sqft: "1115 Sq.ft", 
-          price: "95,00,000", 
-          type: "residential", 
-          status: "sold",
-          customerName: "Joseph L A, Magesh R",
-          represented: "Both Buyer & Seller"
-        }
-      ]);
-    } else {
-      setSoldProperties(sold);
-    }
+    // Fetch from user_properties (Plots marked as sold)
+    const savedPlots = JSON.parse(localStorage.getItem('user_properties') || '[]');
+    const soldPlots = savedPlots.filter(p => p.status === 'sold').map(p => ({
+      id: p.id,
+      title: p.title,
+      location: p.location,
+      sqft: p.size,
+      price: p.price,
+      type: p.type,
+      status: 'approved',
+      customerName: p.customerName || 'Private Client',
+      represented: 'Both Buyer & Sellers'
+    }));
+
+    // Combine both
+    setSoldProperties([...soldPlots, ...approved]);
   }, []);
 
   const categories = [
-    "Chennai Real Estate",
-    "Coimbatore Real Estate",
-    "Bangalore Real Estate",
-    "Hyderabad Real Estate",
-    "Pune Real Estate",
-    "Mysuru Real Estate",
-    "Vizag Real Estate"
+    "OMR Real Estate",
+    "ECR Real Estate",
+    "Tambaram Real Estate",
+    "Guindy Real Estate",
+    "Velachery Real Estate",
+    "Adyar Real Estate",
+    "Anna Nagar Real Estate"
   ];
 
   return (
@@ -110,14 +78,14 @@ const SoldLeasedPage = () => {
         
         {/* Sidebar (Left Column) */}
         <aside style={{ flex: '1 1 280px', maxWidth: '300px' }}>
-          <div style={{ background: 'white', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', marginBottom: '2rem' }}>
-            <div style={{ padding: '12px 15px', background: '#f8f8f8', borderBottom: '1px solid #eee' }}>
-              <h3 style={{ margin: 0, color: '#880000', fontSize: '1rem', fontWeight: 'bold' }}>Property Listing</h3>
+          <div style={{ background: 'var(--primary-dark)', border: '1px solid var(--accent-gold)', borderRadius: '4px', overflow: 'hidden', marginBottom: '2rem' }}>
+            <div style={{ padding: '15px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <h3 style={{ margin: 0, color: 'var(--accent-gold)', fontSize: '1rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Property Listing</h3>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {categories.map((cat, i) => (
-                <li key={i} style={{ borderBottom: '1px solid #eee' }}>
-                  <a href="#" style={{ display: 'block', padding: '10px 15px', color: '#880000', fontSize: '0.85rem', textDecoration: 'none', transition: 'background 0.2s' }}>
+                <li key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <a href="#" style={{ display: 'block', padding: '12px 15px', color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', textDecoration: 'none', transition: 'all 0.3s' }}>
                     {cat}
                   </a>
                 </li>
@@ -125,18 +93,7 @@ const SoldLeasedPage = () => {
             </ul>
           </div>
 
-          <div style={{ background: 'white', border: '1px solid #ddd', borderRadius: '4px', padding: '15px', marginBottom: '2rem' }}>
-            <h4 style={{ margin: '0 0 15px 0', color: '#880000', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '2px solid #880000', paddingBottom: '5px' }}>
-              SOLD/LEASED PROPERTIES
-            </h4>
-            {soldProperties.slice(0, 1).map((p, i) => (
-              <div key={i} style={{ fontSize: '0.8rem', color: '#444', lineHeight: '1.4' }}>
-                <p><strong>Sold Out! {p.sqft} {p.title} at {p.location} Sold For...</strong></p>
-                <p style={{ color: '#880000', fontWeight: 'bold', marginTop: '5px' }}>{p.customerName}</p>
-              </div>
-            ))}
-            <a href="#" style={{ display: 'block', marginTop: '10px', fontSize: '0.75rem', color: '#880000', fontWeight: 'bold' }}>View All Sold/Leased Deals</a>
-          </div>
+          <SoldSidebarBox />
 
           {/* Sidebar Images (Ads style from reference) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -151,11 +108,11 @@ const SoldLeasedPage = () => {
 
         {/* Main Content (Right Column) */}
         <main style={{ flex: '3 1 500px' }}>
-          <div style={{ borderBottom: '2px solid #880000', paddingBottom: '10px', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <h2 className="serif" style={{ margin: 0, fontSize: '2rem', color: '#880000' }}>Sold Leased</h2>
+          <div style={{ borderBottom: '2px solid var(--accent-gold)', paddingBottom: '10px', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <h2 className="serif" style={{ margin: 0, fontSize: '2rem', color: 'var(--primary-dark)' }}>Sold Leased</h2>
           </div>
 
-          <h4 style={{ color: '#880000', fontSize: '1rem', fontStyle: 'italic', marginBottom: '1.5rem' }}>Our recent deals</h4>
+          <h4 style={{ color: 'var(--primary-dark)', fontSize: '1rem', fontStyle: 'italic', marginBottom: '1.5rem' }}>Our recent deals</h4>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {soldProperties.map((prop, idx) => (
@@ -165,30 +122,30 @@ const SoldLeasedPage = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 style={{ 
-                  background: '#FFFFE0', // Light yellow/cream from reference
-                  border: '1px solid #ccc',
-                  borderRadius: '12px 12px 12px 12px',
+                  background: 'white', 
+                  border: '1px solid var(--admin-border)',
+                  borderRadius: '12px',
                   padding: '20px',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
                   position: 'relative'
                 }}
               >
                 <div style={{ fontSize: '0.9rem', lineHeight: '1.6', color: '#333' }}>
-                  <p style={{ margin: '0 0 5px 0', fontSize: '1rem', fontWeight: 500 }}>
-                    {prop.status === 'sold' ? 'Sold Out!' : 'Leased Out!'}
+                  <p style={{ margin: '0 0 5px 0', fontSize: '1rem', fontWeight: 600, color: 'var(--primary-dark)' }}>
+                    Sold Out!
                   </p>
                   <p style={{ margin: '0 0 5px 0' }}>
                     {prop.sqft} {prop.title} at
                   </p>
-                  <p style={{ margin: '0 0 5px 0' }}>{prop.location}</p>
-                  <p style={{ margin: '0 0 5px 0', fontWeight: 'bold' }}>
-                    Sold For Rs.{prop.price}/-
+                  <p style={{ margin: '0 0 5px 0', color: 'var(--text-light)' }}>{prop.location}</p>
+                  <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: 'var(--accent-gold)' }}>
+                    Value: {prop.price}
                   </p>
-                  <p style={{ margin: '0 0 15px 0', color: '#555' }}>
+                  <p style={{ margin: '0 0 15px 0', color: '#777', fontSize: '0.8rem' }}>
                     RSV Groups Realty Represented {prop.represented || 'Client'}
                   </p>
                   
-                  <p style={{ margin: 0, color: '#880000', fontWeight: 'bold', fontSize: '1rem' }}>
+                  <p style={{ margin: 0, color: 'var(--primary-dark)', fontWeight: 'bold', fontSize: '1rem' }}>
                      {prop.customerName}
                   </p>
                 </div>

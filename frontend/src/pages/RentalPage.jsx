@@ -33,7 +33,7 @@ const RentalPage = () => {
 
   const filtered = allRentals.filter(p => {
     if (p.category !== 'rental') return false;
-    if (p.status !== 'approved') return false;
+    if (p.status !== 'available') return false;
     if (p.isSoldLeased) return false;
 
     if (appliedFilters.propertyType && p.type !== appliedFilters.propertyType) return false;

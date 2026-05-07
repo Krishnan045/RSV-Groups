@@ -16,10 +16,17 @@
   --accent-blue: #34ace0;
   --accent-purple: #a55eea;
   
-  --shadow-sm: 0 4px 6px rgba(0,0,0,0.02);
-  --shadow-md: 0 15px 35px rgba(15, 26, 17, 0.05);
   --radius-lg: 24px;
   --radius-md: 16px;
+}
+
+.admin-dashboard.dark-theme {
+  --admin-panel-bg: #0a0f0b;
+  --admin-sidebar-bg: #000000;
+  --admin-card-bg: #151d17;
+  --admin-border: #222c24;
+  --admin-text-main: #fdfaf3;
+  --admin-text-muted: rgba(253, 250, 243, 0.45);
 }
 
 .admin-dashboard {
@@ -41,6 +48,24 @@
   height: 100vh;
   z-index: 1000;
   color: white;
+  overflow-y: auto;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(193, 160, 110, 0.2); /* Subtle Gold */
+  border-radius: 10px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(193, 160, 110, 0.4);
 }
 
 .admin-logo {
@@ -474,4 +499,54 @@
   display: flex;
   gap: 15px;
   margin-bottom: 1.5rem;
+}
+/* Modal Styling */
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 26, 17, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 2rem;
+}
+
+.admin-modal {
+  background: white;
+  padding: 3.5rem;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+  position: relative;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.admin-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-input-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.admin-input-group input,
+.admin-input-group select {
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.admin-input-group input:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 4px rgba(193, 160, 110, 0.1);
 }

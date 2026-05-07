@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, User, Phone, MapPin, ArrowRight, Home, Building } from 'lucide-react';
+import { ShieldCheck, User, Phone, MapPin, ArrowRight, Home, Building, X } from 'lucide-react';
 import logoImg from '../images/LOGO.png';
 
 const RentalOfferPage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [formData, setFormData] = useState({ 
+    landName: '',
     name: '', 
     email: '', 
     mobile: '', 
@@ -19,8 +20,23 @@ const RentalOfferPage = () => {
     captchaAnswer: ''
   });
 
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [fileObjects, setFileObjects] = useState([]);
+
   // Dynamic Captcha State
   const [captcha, setCaptcha] = useState({ num1: 0, num2: 0, operator: '+', result: 0 });
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setFileObjects(prev => [...prev, ...files]);
+    setSelectedFiles(prev => [...prev, ...files.map(f => f.name)]);
+  };
+
+  const removeFile = (index) => {
+    setFileObjects(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
 
   const generateCaptcha = () => {
     const isAddition = Math.random() > 0.5;
@@ -51,46 +67,58 @@ const RentalOfferPage = () => {
       return;
     }
     
-    // Save to localStorage for admin approval
-    const newProperty = {
-      id: Date.now(),
-      title: formData.name ? `${formData.name}'s Property` : 'New Rental Submission',
-      ownerName: formData.name,
-      email: formData.email,
-      phone: formData.mobile || formData.phone,
-      address: formData.address,
-      location: formData.location || 'Chennai',
-      city: formData.city || 'Chennai',
-      message: formData.message,
-      landPrice: formData.landPrice,
-      type: 'rental',
-      status: 'pending',
-      date: new Date().toLocaleDateString(),
-      // Use a default premium image for rentals
-      img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop",
-      rent: "Contact for Rent", // Default text
-      bedrooms: "Contact for Info",
-      sqft: "N/A"
+    const processSubmission = (base64Img) => {
+      const newProperty = {
+        id: Date.now(),
+        title: formData.landName || (formData.name ? `${formData.name}'s Property` : 'New Rental Submission'),
+        ownerName: formData.name,
+        email: formData.email,
+        phone: formData.mobile || formData.phone,
+        propertyAddress: formData.address,
+        location: formData.location || 'Chennai',
+        city: formData.city || 'Chennai',
+        additionalInfo: formData.message,
+        price: formData.landPrice,
+        type: 'rental',
+        category: 'rental',
+        status: 'pending',
+        date: new Date().toLocaleDateString(),
+        img: base64Img || "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop",
+        rent: "Contact for Rent",
+        bedrooms: "Contact for Info",
+        sqft: "N/A"
+      };
+
+      const existingProps = JSON.parse(localStorage.getItem('user_properties') || '[]');
+      localStorage.setItem('user_properties', JSON.stringify([newProperty, ...existingProps]));
+
+      setShowPopup(true);
+      setFormData({ 
+        landName: '',
+        name: '', 
+        email: '', 
+        mobile: '', 
+        phone: '', 
+        address: '', 
+        location: '', 
+        city: '', 
+        landPrice: '',
+        message: '', 
+        region: 'Select Nearest Branch',
+        captchaAnswer: ''
+      });
+      setSelectedFiles([]);
+      setFileObjects([]);
+      generateCaptcha();
     };
 
-    const existingProps = JSON.parse(localStorage.getItem('user_properties') || '[]');
-    localStorage.setItem('user_properties', JSON.stringify([...existingProps, newProperty]));
-
-    setShowPopup(true);
-    setFormData({ 
-      name: '', 
-      email: '', 
-      mobile: '', 
-      phone: '', 
-      address: '', 
-      location: '', 
-      city: '', 
-      landPrice: '',
-      message: '', 
-      region: 'Select Nearest Branch',
-      captchaAnswer: ''
-    });
-    generateCaptcha();
+    if (fileObjects.length > 0) {
+      const reader = new FileReader();
+      reader.onloadend = () => processSubmission(reader.result);
+      reader.readAsDataURL(fileObjects[0]);
+    } else {
+      processSubmission(null);
+    }
   };
 
   return (
@@ -194,6 +222,12 @@ const RentalOfferPage = () => {
 
             <form onSubmit={handleFormSubmit} style={{ display: 'grid', gap: '1.5rem' }}>
               
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--primary-dark)', fontWeight: 600, marginBottom: '0.5rem' }}>Land Name / Plot Name</label>
+                <input type="text" placeholder="e.g. Royal Estate Plot 42" style={{ width: '100%', padding: '12px 16px', background: '#f5f7f5', border: '1px solid #e0e0e0', borderRadius: '6px', fontSize: '0.95rem' }} value={formData.landName} onChange={(e) => setFormData({...formData, landName: e.target.value})} required={true} />
+              </div>
+
+              
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--primary-dark)', fontWeight: 600, marginBottom: '0.5rem' }}>Your Name</label>
@@ -239,14 +273,26 @@ const RentalOfferPage = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--primary-dark)', fontWeight: 600, marginBottom: '0.5rem' }}>Property Images</label>
-                <div style={{ width: '100%', padding: '2.5rem 2rem', border: '2px dashed #d0d0d0', borderRadius: '8px', textAlign: 'center', background: '#fafbfc', cursor: 'pointer', transition: 'border-color 0.3s' }} onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-gold)'} onMouseLeave={e => e.currentTarget.style.borderColor = '#d0d0d0'}>
-                  <input type="file" multiple accept="image/*" style={{ opacity: 0, position: 'absolute', width: '1px', height: '1px' }} id="property-images" />
-                  <label htmlFor="property-images" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '2rem' }}>📷</span>
-                    <span style={{ color: 'var(--accent-gold)', fontWeight: 600, fontSize: '0.95rem' }}>Click to upload property images</span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>(Max 5 images, up to 5MB each)</span>
-                  </label>
+                <div style={{ width: '100%', padding: '2.5rem 2rem', border: '2px dashed #d0d0d0', borderRadius: '8px', textAlign: 'center', background: '#fafbfc', cursor: 'pointer', transition: 'all 0.3s', position: 'relative' }} onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-gold)'} onMouseLeave={e => e.currentTarget.style.borderColor = '#d0d0d0'}>
+                  <input type="file" multiple accept="image/*" style={{ opacity: 0, position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'pointer' }} id="property-images" onChange={handleFileChange} />
+                  <div style={{ pointerEvents: 'none' }}>
+                    <span style={{ fontSize: '2rem', display: 'block', marginBottom: '10px' }}>📷</span>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 600, fontSize: '0.95rem', display: 'block' }}>
+                      {selectedFiles.length > 0 ? `${selectedFiles.length} images selected` : 'Click to upload property images'}
+                    </span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-light)', display: 'block', marginTop: '5px' }}>(Max 5 images, up to 5MB each)</span>
+                  </div>
                 </div>
+                {selectedFiles.length > 0 && (
+                  <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {selectedFiles.map((name, i) => (
+                      <span key={i} style={{ background: '#f0f0f0', padding: '6px 12px', borderRadius: '4px', fontSize: '0.8rem', color: 'var(--primary-dark)', border: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {name}
+                        <X size={14} style={{ cursor: 'pointer', opacity: 0.6 }} onClick={() => removeFile(i)} />
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>

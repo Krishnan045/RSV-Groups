@@ -1,17 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, User, Phone, MapPin, Calendar, ArrowRight, CheckCircle } from 'lucide-react';
+import { ShieldCheck, User, Phone, Mail, MapPin, Calendar, ArrowRight, CheckCircle } from 'lucide-react';
 import logoImg from '../images/LOGO.png';
 
 const Hero = ({ onNavigate }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
-  const [formData, setFormData] = useState({ name: '', contact: '', region: 'Select Region' });
+  const [formData, setFormData] = useState({ name: '', contact: '', email: '', region: 'Select Region' });
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
+
+    // Save to localStorage for Admin Dashboard
+    const newLead = {
+      id: Date.now(),
+      name: formData.name,
+      phone: formData.contact,
+      email: formData.email,
+      interest: formData.region,
+      status: 'New',
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    };
+
+    const existingLeads = JSON.parse(localStorage.getItem('rsv_leads') || '[]');
+    localStorage.setItem('rsv_leads', JSON.stringify([newLead, ...existingLeads]));
+
     setShowPopup(true);
-    setFormData({ name: '', contact: '', region: 'Select Region' });
+    setFormData({ name: '', contact: '', email: '', region: 'Select Region' });
   };
 
   const images = [
@@ -67,7 +82,7 @@ const Hero = ({ onNavigate }) => {
           initial="hidden"
           animate="visible"
         >
-          <motion.div className="badge-premium" variants={itemVariants} style={{ marginTop: '5.0rem' }}>
+          <motion.div className="badge-premium" variants={itemVariants} style={{ marginTop: '7.0rem' }}>
             SIGNATURE COLLECTION
           </motion.div>
 
@@ -110,24 +125,28 @@ const Hero = ({ onNavigate }) => {
           <p style={{ fontSize: 'var(--font-sm)', marginBottom: '1.5rem' }}>Schedule your private consultation.</p>
 
           <form onSubmit={handleFormSubmit}>
-            <div className="input-group" style={{ marginBottom: '1rem' }}>
+            <div className="input-group" style={{ marginBottom: '0.8rem' }}>
               <User size={16} className="input-icon" />
-              <input type="text" placeholder="Name" style={{ fontSize: '0.9rem' }} value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+              <input type="text" placeholder="Name" style={{ fontSize: '0.9rem' }} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
             </div>
-            <div className="input-group" style={{ marginBottom: '1rem' }}>
+            <div className="input-group" style={{ marginBottom: '0.8rem' }}>
               <Phone size={16} className="input-icon" />
-              <input type="text" placeholder="Contact" style={{ fontSize: '0.9rem' }} value={formData.contact} onChange={(e) => setFormData({...formData, contact: e.target.value})} required />
+              <input type="text" placeholder="Contact" style={{ fontSize: '0.9rem' }} value={formData.contact} onChange={(e) => setFormData({ ...formData, contact: e.target.value })} required />
             </div>
-            <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+            <div className="input-group" style={{ marginBottom: '0.8rem' }}>
+              <Mail size={16} className="input-icon" />
+              <input type="email" placeholder="Email Address" style={{ fontSize: '0.9rem' }} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+            </div>
+            <div className="input-group" style={{ marginBottom: '1.2rem' }}>
               <MapPin size={16} className="input-icon" />
-              <select style={{ fontSize: '0.9rem' }} value={formData.region} onChange={(e) => setFormData({...formData, region: e.target.value})}>
+              <select style={{ fontSize: '0.9rem' }} value={formData.region} onChange={(e) => setFormData({ ...formData, region: e.target.value })}>
                 <option>Select Region</option>
                 <option>OMR Corridor</option>
                 <option>ECR Coastal</option>
                 <option>West Tambaram</option>
               </select>
             </div>
-            <button type="submit" className="submit-btn" style={{ cursor: 'pointer', padding: '1rem' }}>
+            <button type="submit" className="submit-btn" style={{ cursor: 'pointer', padding: '0.8rem' }}>
               Submit <ArrowRight size={16} style={{ marginLeft: '8px' }} />
             </button>
           </form>
@@ -136,40 +155,40 @@ const Hero = ({ onNavigate }) => {
         {/* Success Popup */}
         <AnimatePresence>
           {showPopup && (
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
             >
-              <div style={{ 
-                background: 'linear-gradient(145deg, #112217 0%, #0a140d 100%)', 
-                padding: '4rem 3rem', 
-                borderRadius: '30px', 
-                textAlign: 'center', 
-                maxWidth: '450px', 
+              <div style={{
+                background: 'linear-gradient(145deg, #112217 0%, #0a140d 100%)',
+                padding: '4rem 3rem',
+                borderRadius: '30px',
+                textAlign: 'center',
+                maxWidth: '450px',
                 color: 'white',
                 border: '1px solid rgba(245, 130, 32, 0.2)',
                 boxShadow: '0 30px 60px rgba(0, 0, 0, 0.5)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                     <img src={logoImg} alt="RSV Groups" style={{ width: '140px', height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0px 10px 15px rgba(0,0,0,0.3))' }} />
+                    <img src={logoImg} alt="RSV Groups" style={{ width: '140px', height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0px 10px 15px rgba(0,0,0,0.3))' }} />
                   </div>
                 </div>
                 <h3 className="serif" style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'white', letterSpacing: '1px' }}>Thank You.</h3>
                 <p style={{ marginBottom: '2.5rem', color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', lineHeight: 1.6, fontWeight: 300 }}>
-                  Thank you for visiting the <span style={{color: '#F58220', fontWeight: 600}}>RSV Groups</span> website. We appreciate your interest.
+                  Thank you for visiting the <span style={{ color: '#F58220', fontWeight: 600 }}>RSV Groups</span> website. We appreciate your interest.
                 </p>
-                <button 
-                  onClick={() => setShowPopup(false)} 
-                  style={{ 
-                    background: '#F58220', 
-                    color: 'white', 
-                    padding: '12px 32px', 
-                    border: 'none', 
-                    borderRadius: '50px', 
-                    fontWeight: 600, 
+                <button
+                  onClick={() => setShowPopup(false)}
+                  style={{
+                    background: '#F58220',
+                    color: 'white',
+                    padding: '12px 32px',
+                    border: 'none',
+                    borderRadius: '50px',
+                    fontWeight: 600,
                     fontSize: '0.9rem',
                     cursor: 'pointer',
                     letterSpacing: '2px',

@@ -1,7 +1,7 @@
 :root {
-  --primary: #2d5a27;
-  --primary-light: #4caf50;
-  --accent: #8bc34a;
+  --primary: #C1A06E;
+  --primary-light: #D4AF37;
+  --accent: #E5C76B;
   --bg-soft: #f9faf8;
   --text-dark: #1a1a1a;
   --text-muted: #666666;
@@ -69,7 +69,7 @@ button {
 }
 
 .btn-primary {
-  background: var(--primary);
+  background: var(--primary-dark);
   color: var(--white);
   padding: 0.8rem 1.8rem;
   border-radius: var(--radius-sm);
@@ -80,9 +80,9 @@ button {
 }
 
 .btn-primary:hover {
-  background: #1e3d1a;
+  background: var(--accent-gold);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(45, 90, 39, 0.3);
+  box-shadow: 0 5px 15px rgba(193, 160, 110, 0.3);
 }
 
 .section-title {

@@ -20,24 +20,35 @@ import SoldLeasedPage from './pages/SoldLeasedPage';
 const API = import.meta.env.VITE_API_URL;
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  // Initialize state from localStorage to persist after refresh
+  const [currentPage, setCurrentPage] = useState(() => localStorage.getItem('rsv_current_page') || 'home');
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => sessionStorage.getItem('rsv_admin_auth') === 'true');
 
-  // Handle scroll to top and hash-based navigation
+  // Handle persistence and URL-hash synchronization
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Only persist non-admin pages to localStorage
+    if (currentPage !== 'admin') {
+      localStorage.setItem('rsv_current_page', currentPage);
+    }
+    sessionStorage.setItem('rsv_admin_auth', isAdminAuthenticated.toString());
+    // Cleanup legacy localStorage auth if it exists
+    localStorage.removeItem('rsv_admin_auth');
     
-    // Listen for hash change for "hidden" admin access
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
     const handleHash = () => {
-      if (window.location.hash === '#admin') {
+      const hash = window.location.hash;
+      if (hash === '#admin') {
         setCurrentPage('admin');
+      } else if (hash === '' && currentPage === 'admin') {
+        setCurrentPage('home');
       }
     };
     
-    handleHash(); // Check on mount
+    handleHash();
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
-  }, [currentPage]);
+  }, [currentPage, isAdminAuthenticated]);
 
   const renderPage = () => {
     if (currentPage.startsWith('buy')) {

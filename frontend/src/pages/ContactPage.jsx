@@ -1,9 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, Mail, MapPin, MessageSquare, Clock, ShieldCheck, Send } from 'lucide-react';
+import { Phone, Mail, MapPin, MessageSquare, Clock, ShieldCheck, Send, CheckCircle } from 'lucide-react';
 import mapImg from '../images/map1.jpeg';
 
 const ContactPage = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    location: 'OMR, Chennai',
+    budget: '25L - 50L'
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Save to localStorage for Admin Dashboard
+    const newLead = {
+      id: Date.now(),
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      interest: `${formData.location} (Budget: ${formData.budget})`,
+      status: 'New',
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    };
+    
+    const existingLeads = JSON.parse(localStorage.getItem('rsv_leads') || '[]');
+    localStorage.setItem('rsv_leads', JSON.stringify([newLead, ...existingLeads]));
+
+    setSubmitted(true);
+    setFormData({ name: '', phone: '', email: '', location: 'OMR, Chennai', budget: '25L - 50L' });
+  };
+
   return (
     <div className="contact-page-detailed">
       {/* Hero Section */}
@@ -73,42 +103,95 @@ const ContactPage = () => {
             </div>
           </div>
           <div style={{ background: 'white', padding: '5rem', borderRadius: '40px', boxShadow: '0 40px 100px rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.03)' }}>
-            <form style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                <div className="input-group-modern">
-                  <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '10px', display: 'block' }}>Full Name</label>
-                  <input type="text" placeholder="John Doe" style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid #e0e0e0', outline: 'none', font: 'inherit', fontSize: '0.95rem' }} />
-                </div>
-                <div className="input-group-modern">
-                  <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '10px', display: 'block' }}>Phone Number</label>
-                  <input type="tel" placeholder="+91 00000 00000" style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid #e0e0e0', outline: 'none', font: 'inherit', fontSize: '0.95rem' }} />
-                </div>
-              </div>
-              <div className="input-group-modern">
-                <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '10px', display: 'block' }}>Preferred Location</label>
-                <select style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid #e0e0e0', outline: 'none', font: 'inherit', background: 'transparent', fontSize: '0.95rem', cursor: 'pointer' }}>
-                  <option>OMR, Chennai</option>
-                  <option>ECR, Chennai</option>
-                  <option>GST Road, Chennai</option>
-                  <option>Oragadam</option>
-                </select>
-              </div>
-              <div className="input-group-modern" style={{ marginBottom: '1rem' }}>
-                <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '10px', display: 'block' }}>Investment Budget</label>
-                <select style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid #e0e0e0', outline: 'none', font: 'inherit', background: 'transparent', fontSize: '0.95rem', cursor: 'pointer' }}>
-                  <option>25L - 50L</option>
-                  <option>50L - 1Cr</option>
-                  <option>Above 1Cr</option>
-                </select>
-              </div>
-              <button 
-                className="submit-btn" 
-                style={{ background: '#0F1A11', color: 'white', padding: '1.4rem', fontWeight: 800, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', border: 'none', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}
-                onClick={(e) => e.preventDefault()}
+            {submitted ? (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                style={{ textAlign: 'center', padding: '2rem 0' }}
               >
-                <Send size={16} /> Send Inquiry
-              </button>
-            </form>
+                <CheckCircle size={60} color="var(--accent-gold)" style={{ marginBottom: '1.5rem' }} />
+                <h3 className="serif" style={{ fontSize: '2rem', marginBottom: '1rem' }}>Inquiry Received</h3>
+                <p style={{ color: 'var(--text-light)' }}>Our team will get back to you within 24 hours.</p>
+                <button 
+                  onClick={() => setSubmitted(false)}
+                  style={{ marginTop: '2rem', color: 'var(--accent-gold)', fontWeight: 700, cursor: 'pointer', background: 'none', border: 'none' }}
+                >
+                  Send another inquiry
+                </button>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                  <div className="input-group-modern">
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '10px', display: 'block' }}>Full Name</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="John Doe" 
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid #e0e0e0', outline: 'none', font: 'inherit', fontSize: '0.95rem' }} 
+                    />
+                  </div>
+                  <div className="input-group-modern">
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '10px', display: 'block' }}>Phone Number</label>
+                    <input 
+                      type="tel" 
+                      required
+                      placeholder="+91 00000 00000" 
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid #e0e0e0', outline: 'none', font: 'inherit', fontSize: '0.95rem' }} 
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                  <div className="input-group-modern">
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '10px', display: 'block' }}>Email Address</label>
+                    <input 
+                      type="email" 
+                      required
+                      placeholder="john@example.com" 
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid #e0e0e0', outline: 'none', font: 'inherit', fontSize: '0.95rem' }} 
+                    />
+                  </div>
+                  <div className="input-group-modern">
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '10px', display: 'block' }}>Preferred Location</label>
+                    <select 
+                      value={formData.location}
+                      onChange={(e) => setFormData({...formData, location: e.target.value})}
+                      style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid #e0e0e0', outline: 'none', font: 'inherit', background: 'transparent', fontSize: '0.95rem', cursor: 'pointer' }}
+                    >
+                      <option>OMR, Chennai</option>
+                      <option>ECR, Chennai</option>
+                      <option>GST Road, Chennai</option>
+                      <option>Oragadam</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="input-group-modern" style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '10px', display: 'block' }}>Investment Budget</label>
+                  <select 
+                    value={formData.budget}
+                    onChange={(e) => setFormData({...formData, budget: e.target.value})}
+                    style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid #e0e0e0', outline: 'none', font: 'inherit', background: 'transparent', fontSize: '0.95rem', cursor: 'pointer' }}
+                  >
+                    <option>25L - 50L</option>
+                    <option>50L - 1Cr</option>
+                    <option>Above 1Cr</option>
+                  </select>
+                </div>
+                <button 
+                  type="submit"
+                  className="submit-btn" 
+                  style={{ background: '#0F1A11', color: 'white', padding: '1.4rem', fontWeight: 800, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', border: 'none', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}
+                >
+                  <Send size={16} /> Send Inquiry
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </section>
