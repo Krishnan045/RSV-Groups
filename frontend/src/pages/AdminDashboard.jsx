@@ -1070,10 +1070,28 @@ const AdminDashboard = ({ onLogout }) => {
    };
 
    const HistoryView = () => {
-      const completed = properties.filter(p =>
-         (p.status === 'sold' || p.status === 'leased' || p.status === 'available') &&
+      const inventoryCompleted = properties.filter(p => 
+         (p.status === 'sold' || p.status === 'leased')
+      ).map(p => ({
+         ...p,
+         completionDate: p.completionDate || 'Jun 2024',
+         isFromInventory: true
+      }));
+
+      const manualCompleted = soldProperties.filter(p => 
+         p.status === 'approved'
+      ).map(p => ({
+         ...p,
+         size: p.sqft,
+         completionDate: 'Jun 2024',
+         img: p.img || "https://images.unsplash.com/photo-1500382017468-9049fed747ef",
+         isFromInventory: false
+      }));
+
+      const allCompleted = [...inventoryCompleted, ...manualCompleted].filter(p =>
          (p.title || '').toLowerCase().includes((searchTerm || '').toLowerCase())
       );
+
       return (
          <div className="hifi-tab-content">
             <div className="tab-header">
@@ -1084,16 +1102,21 @@ const AdminDashboard = ({ onLogout }) => {
                   <thead>
                      <tr>
                         <th>COMPLETED ASSET</th>
-                        <th>CATEGORY</th>
+                        <th>CUSTOMER</th>
                         <th>SURVEY NO</th>
                         <th>EXTENT</th>
                         <th>FINAL VALUE</th>
-                        <th>COMPLETION DATE</th>
+                        <th>COMPLETION</th>
                         <th>STATUS</th>
                      </tr>
                   </thead>
                   <tbody>
-                     {completed.map((p, i) => (
+                     {allCompleted.length === 0 ? (
+                        <tr><td colSpan="7" style={{ textAlign: 'center', padding: '5rem', color: 'var(--admin-text-muted)' }}>
+                           <FileSearch size={40} opacity={0.2} style={{ marginBottom: '1rem' }} />
+                           <p>No completed transactions found.</p>
+                        </td></tr>
+                     ) : allCompleted.map((p, i) => (
                         <tr key={i}>
                            <td>
                               <div className="asset-thumb-wrap" onClick={() => setViewingHistoryItem(p)} style={{ cursor: 'pointer' }}>
@@ -1105,8 +1128,8 @@ const AdminDashboard = ({ onLogout }) => {
                            <td style={{ fontSize: '0.8rem' }}>{p.surveyNumber || 'N/A'}</td>
                            <td style={{ fontSize: '0.8rem' }}>{p.extent || p.size || 'N/A'}</td>
                            <td style={{ fontWeight: 700, color: 'var(--accent-gold)' }}>{p.price}</td>
-                           <td style={{ fontSize: '0.85rem' }}>{p.completionDate || 'Jun 2024'}</td>
-                           <td><span className={`hifi-badge ${p.status === 'available' ? 'badge-available' : 'badge-sold'}`}>{p.status.toUpperCase()}</span></td>
+                           <td style={{ fontSize: '0.85rem' }}>{p.completionDate}</td>
+                           <td><span className={`hifi-badge ${p.status === 'sold' || p.status === 'approved' ? 'badge-sold' : 'badge-booked'}`}>{p.status.toUpperCase()}</span></td>
                         </tr>
                      ))}
                   </tbody>
