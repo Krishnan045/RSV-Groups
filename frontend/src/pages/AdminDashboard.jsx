@@ -37,7 +37,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../images/LOGO.png';
 
 // --- Sub-Components for Cleanliness ---
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || 
+                (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://rsv-groups.onrender.com');
 
 const SparkLine = ({ color, data }) => (
    <svg width="60" height="25" viewBox="0 0 60 25" style={{ overflow: 'visible' }}>

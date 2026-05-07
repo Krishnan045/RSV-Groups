@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { MapPin, Home, Building, TreePine, Ruler, Sparkles, CheckCircle2, ChevronRight } from 'lucide-react';
 import SoldSidebarBox from '../components/SoldSidebarBox';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || 
+                (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://rsv-groups.onrender.com');
 
 const SoldLeasedPage = () => {
   const [soldProperties, setSoldProperties] = useState([]);
