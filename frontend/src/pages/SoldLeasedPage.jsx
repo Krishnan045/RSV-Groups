@@ -22,7 +22,7 @@ const SoldLeasedPage = () => {
         // Fetch from plots table (Inventory marked as sold)
         const plotsRes = await fetch(`${API_BASE}/api/plots`);
         const plotsData = await plotsRes.json();
-        const soldPlots = plotsData.filter(p => p.status === 'Sold').map(p => ({
+        const soldPlots = plotsData.filter(p => p.status && p.status.toLowerCase() === 'sold').map(p => ({
           id: p.id,
           title: p.name,
           location: p.location,

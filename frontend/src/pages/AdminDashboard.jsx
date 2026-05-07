@@ -101,12 +101,12 @@ const AdminDashboard = ({ onLogout }) => {
             if (plotsData.length > 0) {
                const mappedPlots = plotsData.map(p => ({
                   id: p.id,
-                  title: p.name,
-                  location: p.location,
-                  size: p.size,
-                  price: p.price,
+                  title: p.name || 'Untitled Plot',
+                  location: p.location || 'Unknown Location',
+                  size: p.size || 'N/A',
+                  price: p.price || 'Market Rate',
                   type: 'land',
-                  status: p.status.toLowerCase(),
+                  status: (p.status || 'available').toLowerCase(),
                   img: p.image_url || "https://images.unsplash.com/photo-1500382017468-9049fed747ef",
                   surveyNumber: p.survey_number || 'N/A',
                   extent: p.extent || 'N/A',
