@@ -3,30 +3,61 @@ import { motion } from 'framer-motion';
 import { MapPin, Home, Building, TreePine, Ruler, Sparkles, CheckCircle2, ChevronRight } from 'lucide-react';
 import SoldSidebarBox from '../components/SoldSidebarBox';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const SoldLeasedPage = () => {
   const [soldProperties, setSoldProperties] = useState([]);
 
   useEffect(() => {
-    // Fetch from rsv_sold_properties (Success Stories)
-    const savedSold = JSON.parse(localStorage.getItem('rsv_sold_properties') || '[]');
-    const approved = savedSold.filter(p => p.status === 'approved');
-    
-    // Fetch from user_properties (Plots marked as sold)
-    const savedPlots = JSON.parse(localStorage.getItem('user_properties') || '[]');
-    const soldPlots = savedPlots.filter(p => p.status === 'sold').map(p => ({
-      id: p.id,
-      title: p.title,
-      location: p.location,
-      sqft: p.size,
-      price: p.price,
-      type: p.type,
-      status: 'approved',
-      customerName: p.customerName || 'Private Client',
-      represented: 'Both Buyer & Sellers'
-    }));
+    const fetchData = async () => {
+      try {
+        // Fetch from sold_properties table (Success Stories)
+        const soldRes = await fetch(`${API_BASE}/api/sold`);
+        const soldData = await soldRes.json();
+        const approved = soldData.map(p => ({
+          ...p,
+          customerName: p.customer_name || 'Private Client'
+        }));
 
-    // Combine both
-    setSoldProperties([...soldPlots, ...approved]);
+        // Fetch from plots table (Inventory marked as sold)
+        const plotsRes = await fetch(`${API_BASE}/api/plots`);
+        const plotsData = await plotsRes.json();
+        const soldPlots = plotsData.filter(p => p.status === 'Sold').map(p => ({
+          id: p.id,
+          title: p.name,
+          location: p.location,
+          sqft: p.size,
+          price: p.price,
+          type: 'land',
+          status: 'approved',
+          customerName: p.customer_name || 'Private Client',
+          represented: 'Both Buyer & Sellers'
+        }));
+
+        // Combine both
+        setSoldProperties([...soldPlots, ...approved]);
+      } catch (err) {
+        console.error("Error fetching sold properties:", err);
+        // Fallback to localStorage if server fails (optional, but good for transition)
+        const savedSold = JSON.parse(localStorage.getItem('rsv_sold_properties') || '[]');
+        const approvedLocal = savedSold.filter(p => p.status === 'approved');
+        const savedPlots = JSON.parse(localStorage.getItem('user_properties') || '[]');
+        const soldPlotsLocal = savedPlots.filter(p => p.status === 'sold').map(p => ({
+          id: p.id,
+          title: p.title,
+          location: p.location,
+          sqft: p.size,
+          price: p.price,
+          type: p.type,
+          status: 'approved',
+          customerName: p.customerName || 'Private Client',
+          represented: 'Both Buyer & Sellers'
+        }));
+        setSoldProperties([...soldPlotsLocal, ...approvedLocal]);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const categories = [

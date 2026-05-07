@@ -26,6 +26,20 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Update plot
+router.put('/:id', async (req, res) => {
+  const { name, location, price, size, status, project_id, image_url, approval } = req.body;
+  try {
+    await db.query(
+      'UPDATE plots SET name = ?, location = ?, price = ?, size = ?, status = ?, project_id = ?, image_url = ?, approval = ? WHERE id = ?',
+      [name, location, price, size, status, project_id, image_url, approval, req.params.id]
+    );
+    res.json({ message: 'Plot updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Delete plot
 router.delete('/:id', async (req, res) => {
   try {

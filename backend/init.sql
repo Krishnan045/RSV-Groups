@@ -1,6 +1,6 @@
--- GreenField Real Estate Database Schema
-CREATE DATABASE IF NOT EXISTS greenfield_db;
-USE greenfield_db;
+-- RSV Groups Database Schema
+CREATE DATABASE IF NOT EXISTS rsv_groups;
+USE rsv_groups;
 
 -- Projects Table
 CREATE TABLE IF NOT EXISTS projects (
@@ -49,8 +49,28 @@ CREATE TABLE IF NOT EXISTS admins (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Sold Properties Table (Success Stories)
+CREATE TABLE IF NOT EXISTS sold_properties (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    location VARCHAR(255),
+    sqft VARCHAR(100),
+    price VARCHAR(100),
+    type ENUM('land', 'house', 'flat') DEFAULT 'land',
+    represented VARCHAR(255),
+    customer_name VARCHAR(255),
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'approved',
+    image_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Sample Data
 INSERT INTO projects (name, status, price_range) VALUES 
 ('The Royal Estate', 'Available', '₹45L - ₹1.5Cr'),
 ('Emerald Valley', 'Fast Filling', '₹85L - ₹2.5Cr'),
 ('Heritage West', 'Available', '₹32L - ₹65L');
+
+INSERT INTO sold_properties (title, location, sqft, price, represented, status, type, customer_name) VALUES 
+('Land in Kundrathur rajagopal nagar', 'Kundrathur rajagopal nagar, Chennai', '600 sqft to 2400 sqft', 'Market Rate', 'Both Buyer & Sellers', 'approved', 'land', 'Multiple Clients'),
+('Land in Kundrathur arul jothi nagar', 'Kundrathur arul jothi nagar, Chennai', '600 sqft to 2400 sqft', 'Market Rate', 'Both Buyer & Sellers', 'approved', 'land', 'Multiple Clients'),
+('Land in valasaravakkam Astalakshmi nagar', 'valasaravakkam Astalakshmi nagar, Chennai', '3500 sqft', 'Market Rate', 'Both Buyer & Sellers', 'approved', 'land', 'Private Client');

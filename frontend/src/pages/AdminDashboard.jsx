@@ -37,6 +37,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../images/LOGO.png';
 
 // --- Sub-Components for Cleanliness ---
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const SparkLine = ({ color, data }) => (
    <svg width="60" height="25" viewBox="0 0 60 25" style={{ overflow: 'visible' }}>
@@ -92,107 +93,56 @@ const AdminDashboard = ({ onLogout }) => {
 
    // Initialization & Data Loading (Preserving existing logic)
    useEffect(() => {
-      const initData = () => {
-         let savedProps = JSON.parse(localStorage.getItem('user_properties') || '[]');
-         if (savedProps.length === 0) {
-            const seedProps = [
-               { id: 'b1', title: "Premium Plot A1", location: "The Royal Estate", size: "1200 Sq.ft", price: "₹45L", type: "land", category: 'buy', img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef", status: 'available', surveyNumber: '124/2A', extent: '1.5 Acres', customerName: '' },
-               { id: 'b2', title: "Emerald Plot B4", location: "Emerald Valley", size: "2400 Sq.ft", price: "₹85L", type: "land", category: 'buy', img: "https://images.unsplash.com/photo-1629851605336-f3ccb0eceb9e", status: 'booked', surveyNumber: '88/1B', extent: '2.0 Acres', customerName: 'Rajesh Khanna' },
-               { id: 'b3', title: "Heritage Plot C9", location: "Heritage West", size: "1000 Sq.ft", price: "₹32L", type: "land", category: 'buy', img: "https://images.unsplash.com/photo-1448375240586-882707db888b", status: 'available', surveyNumber: '402/1', extent: '0.8 Acres', customerName: '' },
-               { id: 'b4', title: "Grand Plot D2", location: "Greenfield Prime", size: "1500 Sq.ft", price: "₹56L", type: "land", category: 'buy', img: "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f", status: 'sold', surveyNumber: '215/C', extent: '1.2 Acres', customerName: 'Amit Shah' }
-            ];
-            localStorage.setItem('user_properties', JSON.stringify(seedProps));
-            savedProps = seedProps;
-         }
-         setProperties(savedProps);
+      const initData = async () => {
+         try {
+            // Fetch Plots from Server
+            const plotsRes = await fetch(`${API_BASE}/api/plots`);
+            const plotsData = await plotsRes.json();
+            if (plotsData.length > 0) {
+               const mappedPlots = plotsData.map(p => ({
+                  id: p.id,
+                  title: p.name,
+                  location: p.location,
+                  size: p.size,
+                  price: p.price,
+                  type: 'land',
+                  status: p.status.toLowerCase(),
+                  img: p.image_url || "https://images.unsplash.com/photo-1500382017468-9049fed747ef",
+                  surveyNumber: p.survey_number || 'N/A',
+                  extent: p.extent || 'N/A',
+                  customerName: p.customer_name || ''
+               }));
+               setProperties(mappedPlots);
+            } else {
+               // Fallback to local if empty or error
+               let savedProps = JSON.parse(localStorage.getItem('user_properties') || '[]');
+               setProperties(savedProps);
+            }
 
-         let savedProjects = JSON.parse(localStorage.getItem('rsv_projects') || '[]');
-         if (savedProjects.length === 0) {
-            const seedProjects = [
-               { id: 1, name: "The Royal Estate", location: "OMR, Chennai", units: "45/60", status: "Active" },
-               { id: 2, name: "Emerald Valley", location: "ECR, Chennai", units: "12/24", status: "Limited" },
-               { id: 3, name: "Heritage West", location: "GST Road, Chennai", units: "10/10", status: "Sold Out" }
-            ];
-            localStorage.setItem('rsv_projects', JSON.stringify(seedProjects));
-            savedProjects = seedProjects;
+            // Fetch Sold Properties from Server
+            const soldRes = await fetch(`${API_BASE}/api/sold/all`);
+            const soldData = await soldRes.json();
+            if (soldData.length > 0) {
+               const mappedSold = soldData.map(p => ({
+                  ...p,
+                  customerName: p.customer_name
+               }));
+               setSoldProperties(mappedSold);
+            } else {
+               let savedSold = JSON.parse(localStorage.getItem('rsv_sold_properties') || '[]');
+               setSoldProperties(savedSold);
+            }
+         } catch (err) {
+            console.error("Error loading server data:", err);
+            // Fallback to localStorage
+            setProperties(JSON.parse(localStorage.getItem('user_properties') || '[]'));
+            setSoldProperties(JSON.parse(localStorage.getItem('rsv_sold_properties') || '[]'));
          }
-         setProjects(savedProjects);
 
-         let savedLeads = JSON.parse(localStorage.getItem('rsv_leads') || '[]');
-         if (savedLeads.length === 0) {
-            const seedLeads = [
-               { id: 1, name: "Anish Kumar", phone: "+91 98765 43210", email: "anish@email.com", interest: "OMR Plots", status: "New", date: "2024-03-20", address: "Adyar, Chennai", source: "Facebook Ads", notes: "Interested in 1200 sq.ft plot near OMR. Looking for immediate booking." },
-               { id: 2, name: "Priya Sharma", phone: "+91 87654 32109", email: "priya@email.com", interest: "ECR Luxury", status: "Contacted", date: "2024-03-19", address: "Thiruvanmiyur, Chennai", source: "Google Search", notes: "Wants a sea-facing property. Budget around ₹1.5 Cr." },
-               { id: 3, name: "Vikram Singh", phone: "+91 76543 21098", email: "vikram@email.com", interest: "Heritage West", status: "Sold", date: "2024-03-18", address: "Tambaram, Chennai", source: "Referral", notes: "Finalized Heritage West Plot 12. Paperwork in progress." }
-            ];
-            localStorage.setItem('rsv_leads', JSON.stringify(seedLeads));
-            savedLeads = seedLeads;
-         }
-         setLeads(savedLeads);
-
-         let savedVisits = JSON.parse(localStorage.getItem('rsv_visits') || '[]');
-         if (savedVisits.length === 0) {
-            const seedVisits = [
-               { id: 1, name: "Vikram Singh", time: "10:00 AM", date: "Jun 22, 2024", location: "The Royal Estate (OMR)", status: "Confirm" },
-               { id: 2, name: "Neha Patel", time: "11:30 AM", date: "Jun 23, 2024", location: "Emerald Valley (ECR)", status: "Pending" }
-            ];
-            localStorage.setItem('rsv_visits', JSON.stringify(seedVisits));
-            savedVisits = seedVisits;
-         }
-         setVisits(savedVisits);
-
-         let savedSold = JSON.parse(localStorage.getItem('rsv_sold_properties') || '[]');
-         if (savedSold.length < 40) { // Force update if less than 40 items
-            const seedSold = [
-               { id: "sold-1", title: "Land in Kundrathur rajagopal nagar", location: "Kundrathur rajagopal nagar, Chennai", sqft: "600 sqft to 2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Multiple Clients" },
-               { id: "sold-2", title: "Land in Kundrathur arul jothi nagar", location: "Kundrathur arul jothi nagar, Chennai", sqft: "600 sqft to 2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Multiple Clients" },
-               { id: "sold-3", title: "Land in Kundrathur kumaran nagar", location: "Kundrathur kumaran nagar, Chennai", sqft: "600 sqft to 2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Multiple Clients" },
-               { id: "sold-4", title: "Land in valasaravakkam Astalakshmi nagar, 2nd Main road", location: "valasaravakkam Astalakshmi nagar, 2nd Main road, Chennai", sqft: "3500 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-5", title: "Land in valasaravakkam Astalakshmi nagar, 14th street", location: "valasaravakkam Astalakshmi nagar, 14th street, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-6", title: "Land in valasaravakkam Astalakshmi nagar, 2st Main road", location: "valasaravakkam Astalakshmi nagar, 2st Main road, Chennai", sqft: "1200 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-7", title: "Land in valasaravakkam Astalakshmi nagar, 2st Main road", location: "valasaravakkam Astalakshmi nagar, 2st Main road, Chennai", sqft: "1250 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-8", title: "Land in valasaravakkam Astalakshmi nagar, 2st Main road", location: "valasaravakkam Astalakshmi nagar, 2st Main road, Chennai", sqft: "900 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-9", title: "Land in valasaravakkam Astalakshmi nagar, 11th street", location: "valasaravakkam Astalakshmi nagar, 11th street, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-10", title: "Land in valasaravakkam Astalakshmi nagar, 12th street", location: "valasaravakkam Astalakshmi nagar, 12th street, Chennai", sqft: "2800 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-11", title: "Land in valasaravakkam Astalakshmi nagar, 6th street", location: "valasaravakkam Astalakshmi nagar, 6th street, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-12", title: "Land in valasaravakkam Kamakodi nagar", location: "valasaravakkam Kamakodi nagar, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-13", title: "Land in valasaravakkam Kamakodi nagar 1st Main road", location: "valasaravakkam Kamakodi nagar 1st Main road, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-14", title: "Land in Porur santhoush nagar", location: "Porur santhoush nagar, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-15", title: "Land in Porur santhoush nagar", location: "Porur santhoush nagar, Chennai", sqft: "3460 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-16", title: "Land in Porur santhoush nagar", location: "Porur santhoush nagar, Chennai", sqft: "2800 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-17", title: "Land in Porur Ramakrishna nagar", location: "Porur Ramakrishna nagar, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-18", title: "Land in Porur krishna nagar", location: "Porur krishna nagar, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-19", title: "Land in Alapakkam sri Krishna nagar", location: "Alapakkam sri Krishna nagar, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-20", title: "4800 sqft House in Alapakkam sri Krishna nagar", location: "Alapakkam sri Krishna nagar, Chennai", sqft: "2400 sqft Land / 4800 sqft House", price: "4Cr", represented: "Both Buyer & Sellers", status: "approved", type: "house", customerName: "Private Client" },
-               { id: "sold-21", title: "2100 sqft House in Alapakkam sri Krishna nagar", location: "Alapakkam sri Krishna nagar, Chennai", sqft: "770 sqft Land / 2100 sqft House", price: "1.50Cr", represented: "Both Buyer & Sellers", status: "approved", type: "house", customerName: "Private Client" },
-               { id: "sold-22", title: "3000 sqft House in Alapakkam Krishnamachari nagar", location: "Alapakkam Krishnamachari nagar, Chennai", sqft: "1800 sqft Land / 3000 sqft House", price: "2.5Cr", represented: "Both Buyer & Sellers", status: "approved", type: "house", customerName: "Private Client" },
-               { id: "sold-23", title: "Flat in Astalakshmi Nagar", location: "Astalakshmi Nagar, Chennai", sqft: "657 sqft UDS / 1275 sqft Flat", price: "75L", represented: "Both Buyer & Sellers", status: "approved", type: "flat", customerName: "Private Client" },
-               { id: "sold-24", title: "Flat in Astalakshmi Nagar", location: "Astalakshmi Nagar, Chennai", sqft: "700 sqft UDS / 1355 sqft Flat", price: "1.05Cr", represented: "Both Buyer & Sellers", status: "approved", type: "flat", customerName: "Private Client" },
-               { id: "sold-25", title: "Flat in Sridevi Nagar", location: "Sridevi Nagar, Chennai", sqft: "600 sqft UDS / 1215 sqft Flat", price: "65L", represented: "Both Buyer & Sellers", status: "approved", type: "flat", customerName: "16 Years old" },
-               { id: "sold-26", title: "Flat in Sridevi Nagar", location: "Sridevi Nagar, Chennai", sqft: "300 sqft UDS / 645 sqft Flat", price: "35L", represented: "Both Buyer & Sellers", status: "approved", type: "flat", customerName: "13 Years old" },
-               { id: "sold-27", title: "Flat in Sridevi Nagar", location: "Sridevi Nagar, Chennai", sqft: "345 sqft UDS / 775 sqft Flat", price: "55L", represented: "Both Buyer & Sellers", status: "approved", type: "flat", customerName: "15 Years old" },
-               { id: "sold-28", title: "Flat in Prestige bella vista", location: "Prestige bella vista, Chennai", sqft: "395 sqft UDS / 1775 sqft Flat", price: "1.70", represented: "Both Buyer & Sellers", status: "approved", type: "flat", customerName: "12 Years old" },
-               { id: "sold-29", title: "Land in valasaravakkam Astalakshmi nagar, 21st Street", location: "valasaravakkam Astalakshmi nagar, 21st Street, Chennai", sqft: "1800 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-30", title: "Land in Kundrathur Babu garden", location: "Kundrathur Babu garden, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-31", title: "Land in Kundrathur Manikandan Nagar", location: "Kundrathur Manikandan Nagar, Chennai", sqft: "600 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-32", title: "Land in Kundrathur Metha Nagar garden", location: "Kundrathur Metha Nagar garden, Chennai", sqft: "1800 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-33", title: "Land in Alapakkam Metro Nagar", location: "Alapakkam Metro Nagar, Chennai", sqft: "1800 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-34", title: "Land in Valasaravakkam Svs Nagar", location: "Valasaravakkam Svs Nagar, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-35", title: "10 Ground Land in palavakkam", location: "palavakkam, Chennai", sqft: "10 Ground", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-36", title: "Land in singaperumal kovil nr Mahindra World city", location: "singaperumal kovil nr Mahindra World city, Chennai", sqft: "1.5 Acres", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-37", title: "Land in Kovur nr service road", location: "Kovur nr service road, Chennai", sqft: "1.10 Acres", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-38", title: "Land in Kundrathur nr Murugan Kovil", location: "Kundrathur nr Murugan Kovil, Chennai", sqft: "1.5 Acres", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-39", title: "10 Ground Land in Valasaravakkam Thirupathi nagar", location: "Valasaravakkam Thirupathi nagar, Chennai", sqft: "10 Ground", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-40", title: "Land in Anakaputhur, pari nagar", location: "Anakaputhur, pari nagar, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-41", title: "Land in zamin pallavaram main road", location: "zamin pallavaram main road, Chennai", sqft: "2400 sqft", price: "Market Rate", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-42", title: "Row House in Harmony villa, in iyyapanthangal", location: "Harmony villa, in iyyapanthangal, Chennai", sqft: "753 sqft UDS / 1600 sqft Row House", price: "1Cr", represented: "Both Buyer & Sellers", status: "approved", type: "house", customerName: "Private Client" },
-               { id: "sold-43", title: "Land in Bougain villa in iyyappanthangal", location: "Bougain villa in iyyappanthangal, Chennai", sqft: "1230 sqft", price: "75L", represented: "Both Buyer & Sellers", status: "approved", type: "land", customerName: "Private Client" },
-               { id: "sold-44", title: "Flat in Thillai ganga nagar nanganallur", location: "Thillai ganga nagar nanganallur, Chennai", sqft: "600 sqft UDS / 1145sqft Flat", price: "83L", represented: "Both Buyer & Sellers", status: "approved", type: "flat", customerName: "12 Years old" }
-            ];
-            localStorage.setItem('rsv_sold_properties', JSON.stringify(seedSold));
-            savedSold = seedSold;
-         }
-         setSoldProperties(savedSold);
+         // Keep these on localStorage for now
+         setProjects(JSON.parse(localStorage.getItem('rsv_projects') || '[]'));
+         setLeads(JSON.parse(localStorage.getItem('rsv_leads') || '[]'));
+         setVisits(JSON.parse(localStorage.getItem('rsv_visits') || '[]'));
       };
       initData();
    }, []);
@@ -209,72 +159,106 @@ const AdminDashboard = ({ onLogout }) => {
    const saveToLB = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
    // Property Handlers (Preserving functionality)
-   const handleAddProperty = (e) => {
+   const handleAddProperty = async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const newProp = {
-         id: editingItem ? editingItem.id : Date.now().toString(),
-         title: formData.get('title'),
+         name: formData.get('title'),
          location: formData.get('location'),
          price: formData.get('price'),
          size: formData.get('size'),
          type: formData.get('type') || 'land',
          status: formData.get('status') || 'available',
-         created: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-         img: formData.get('img') || "https://images.unsplash.com/photo-1500382017468-9049fed747ef",
-         surveyNumber: formData.get('surveyNumber'),
+         image_url: formData.get('img') || "https://images.unsplash.com/photo-1500382017468-9049fed747ef",
+         survey_number: formData.get('surveyNumber'),
          extent: formData.get('extent'),
-         customerName: formData.get('customerName'),
-         ownerName: formData.get('ownerName'),
-         phone: formData.get('phone'),
+         customer_name: formData.get('customerName'),
+         project_id: 1 // Default or from project selection
       };
 
-      let updated = editingItem ? properties.map(p => p.id === editingItem.id ? newProp : p) : [newProp, ...properties];
-      setProperties(updated);
-      saveToLB('user_properties', updated);
-      setShowAddModal(false);
-      setEditingItem(null);
+      try {
+         const method = editingItem ? 'PUT' : 'POST';
+         const url = editingItem ? `${API_BASE}/api/plots/${editingItem.id}` : `${API_BASE}/api/plots`;
+         
+         const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newProp)
+         });
+
+         if (res.ok) {
+            // Refresh local state
+            const plotsRes = await fetch(`${API_BASE}/api/plots`);
+            const plotsData = await plotsRes.json();
+            setProperties(plotsData.map(p => ({
+               id: p.id, title: p.name, location: p.location, size: p.size, price: p.price,
+               status: p.status.toLowerCase(), img: p.image_url, customerName: p.customer_name
+            })));
+            setShowAddModal(false);
+            setEditingItem(null);
+         }
+      } catch (err) {
+         console.error("Error saving property:", err);
+      }
    };
 
-   const handleAddSold = (e) => {
+   const handleAddSold = async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const newSold = {
-         id: editingItem ? editingItem.id : Date.now().toString(),
          title: formData.get('title'),
          location: formData.get('location'),
          price: formData.get('price'),
          sqft: formData.get('sqft'),
          type: formData.get('type') || 'land',
          represented: formData.get('represented'),
-         customerName: formData.get('customerName'),
+         customer_name: formData.get('customerName'),
          status: editingItem ? editingItem.status : 'approved'
       };
 
-      if (editingItem && editingItem.isFromInventory) {
-         // Update in primary properties inventory
-         const updatedProps = properties.map(p => 
-            p.id === editingItem.id ? { 
-               ...p, 
-               title: newSold.title,
-               location: newSold.location,
-               price: newSold.price,
-               size: newSold.sqft,
-               type: newSold.type,
-               customerName: newSold.customerName
-            } : p
-         );
-         setProperties(updatedProps);
-         saveToLB('user_properties', updatedProps);
-      } else {
-         // Update or add to standalone sold records
-         let updated = editingItem ? soldProperties.map(p => p.id === editingItem.id ? newSold : p) : [newSold, ...soldProperties];
-         setSoldProperties(updated);
-         saveToLB('rsv_sold_properties', updated);
-      }
+      try {
+         if (editingItem && editingItem.isFromInventory) {
+            // Update in primary properties inventory
+            await fetch(`${API_BASE}/api/plots/${editingItem.id}`, {
+               method: 'PUT',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({
+                  name: newSold.title,
+                  location: newSold.location,
+                  price: newSold.price,
+                  size: newSold.sqft,
+                  status: 'sold',
+                  customer_name: newSold.customer_name
+               })
+            });
+         } else {
+            // Update or add to standalone sold records
+            const method = editingItem ? 'PUT' : 'POST';
+            const url = editingItem ? `${API_BASE}/api/sold/${editingItem.id}` : `${API_BASE}/api/sold`;
+            await fetch(url, {
+               method,
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify(newSold)
+            });
+         }
 
-      setShowAddSoldModal(false);
-      setEditingItem(null);
+         // Refresh data
+         const soldRes = await fetch(`${API_BASE}/api/sold/all`);
+         const soldData = await soldRes.json();
+         setSoldProperties(soldData.map(p => ({ ...p, customerName: p.customer_name })));
+         
+         const plotsRes = await fetch(`${API_BASE}/api/plots`);
+         const plotsData = await plotsRes.json();
+         setProperties(plotsData.map(p => ({
+            id: p.id, title: p.name, location: p.location, size: p.size, price: p.price,
+            status: p.status.toLowerCase(), img: p.image_url, customerName: p.customer_name
+         })));
+
+         setShowAddSoldModal(false);
+         setEditingItem(null);
+      } catch (err) {
+         console.error("Error saving sold record:", err);
+      }
    };
 
    const deleteLead = (id) => {
@@ -285,21 +269,36 @@ const AdminDashboard = ({ onLogout }) => {
       }
    };
 
-   const handleMarkAsSold = (e) => {
+   const handleMarkAsSold = async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const buyerName = formData.get('buyerName');
 
-      const updated = properties.map(p =>
-         p.id === selectedPropForSold.id
-            ? { ...p, status: 'sold', customerName: buyerName }
-            : p
-      );
-      setProperties(updated);
-      localStorage.setItem('user_properties', JSON.stringify(updated));
+      try {
+         await fetch(`${API_BASE}/api/plots/${selectedPropForSold.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+               ...selectedPropForSold,
+               name: selectedPropForSold.title, // map back to DB field
+               status: 'sold',
+               customer_name: buyerName
+            })
+         });
 
-      setShowMarkSoldModal(false);
-      setSelectedPropForSold(null);
+         // Refresh
+         const plotsRes = await fetch(`${API_BASE}/api/plots`);
+         const plotsData = await plotsRes.json();
+         setProperties(plotsData.map(p => ({
+            id: p.id, title: p.name, location: p.location, size: p.size, price: p.price,
+            status: p.status.toLowerCase(), img: p.image_url, customerName: p.customer_name
+         })));
+
+         setShowMarkSoldModal(false);
+         setSelectedPropForSold(null);
+      } catch (err) {
+         console.error("Error marking as sold:", err);
+      }
    };
 
    const handleUpdateProject = (updatedProj) => {
@@ -326,10 +325,15 @@ const AdminDashboard = ({ onLogout }) => {
       setShowAddProjectModal(false);
    };
 
-   const deleteProperty = (id) => {
-      const updated = properties.filter(p => p.id !== id);
-      setProperties(updated);
-      saveToLB('user_properties', updated);
+   const deleteProperty = async (id) => {
+      if (window.confirm("Are you sure you want to delete this property?")) {
+         try {
+            await fetch(`${API_BASE}/api/plots/${id}`, { method: 'DELETE' });
+            setProperties(properties.filter(p => p.id !== id));
+         } catch (err) {
+            console.error("Error deleting property:", err);
+         }
+      }
    };
 
    // --- UI Sections ---
@@ -910,50 +914,110 @@ const AdminDashboard = ({ onLogout }) => {
                               <div style={{ display: 'flex', gap: '8px' }}>
                                  <button className="action-icon-btn" title="View Details" onClick={() => setViewingSoldItem(prop)}><Eye size={14} /></button>
                                  <button className="action-icon-btn" title="Edit" onClick={() => { setEditingItem(prop); setShowAddSoldModal(true); }}><Edit3 size={14} /></button>
-                                 <button className="action-icon-btn" title="Approve" onClick={() => {
-                                    if (prop.isFromInventory) {
-                                       const updated = properties.map(p => p.id === prop.id ? { ...p, status: 'sold' } : p);
-                                       setProperties(updated);
-                                       saveToLB('user_properties', updated);
-                                    } else {
-                                       const updated = soldProperties.map(p => p.id === prop.id ? { ...p, status: 'approved' } : p);
-                                       setSoldProperties(updated);
-                                       saveToLB('rsv_sold_properties', updated);
-                                    }
-                                 }}><CheckCircle size={14} color="#2ed573" /></button>
-                                 <button className="action-icon-btn" title="Pending" onClick={() => {
-                                    if (prop.isFromInventory) {
-                                       const updated = properties.map(p => p.id === prop.id ? { ...p, status: 'booked' } : p);
-                                       setProperties(updated);
-                                       saveToLB('user_properties', updated);
-                                    } else {
-                                       const updated = soldProperties.map(p => p.id === prop.id ? { ...p, status: 'pending' } : p);
-                                       setSoldProperties(updated);
-                                       saveToLB('rsv_sold_properties', updated);
-                                    }
-                                 }}><Clock size={14} color="#ffa502" /></button>
-                                 <button className="action-icon-btn" title="Reject" onClick={() => {
-                                    if (prop.isFromInventory) {
-                                       const updated = properties.map(p => p.id === prop.id ? { ...p, status: 'available' } : p);
-                                       setProperties(updated);
-                                       saveToLB('user_properties', updated);
-                                    } else {
-                                       const updated = soldProperties.map(p => p.id === prop.id ? { ...p, status: 'rejected' } : p);
-                                       setSoldProperties(updated);
-                                       saveToLB('rsv_sold_properties', updated);
-                                    }
-                                 }}><ThumbsDown size={14} color="#eb4d4b" /></button>
-                                 <button className="action-icon-btn" title="Delete" onClick={() => {
-                                    if (window.confirm("Are you sure you want to remove this record?")) {
+                                 <button className="action-icon-btn" title="Approve" onClick={async () => {
+                                    try {
                                        if (prop.isFromInventory) {
-                                          const updated = properties.map(p => p.id === prop.id ? { ...p, status: 'available' } : p);
-                                          setProperties(updated);
-                                          saveToLB('user_properties', updated);
+                                          await fetch(`http://localhost:5000/api/plots/${prop.id}`, {
+                                             method: 'PUT',
+                                             headers: { 'Content-Type': 'application/json' },
+                                             body: JSON.stringify({ ...prop, name: prop.title, status: 'sold' })
+                                          });
                                        } else {
-                                          const updated = soldProperties.filter(p => p.id !== prop.id);
-                                          setSoldProperties(updated);
-                                          saveToLB('rsv_sold_properties', updated);
+                                          await fetch(`http://localhost:5000/api/sold/${prop.id}`, {
+                                             method: 'PUT',
+                                             headers: { 'Content-Type': 'application/json' },
+                                             body: JSON.stringify({ ...prop, status: 'approved' })
+                                          });
                                        }
+                                       // Refresh
+                                       const soldRes = await fetch('http://localhost:5000/api/sold/all');
+                                       const soldData = await soldRes.json();
+                                       setSoldProperties(soldData.map(p => ({ ...p, customerName: p.customer_name })));
+                                       const plotsRes = await fetch('http://localhost:5000/api/plots');
+                                       const plotsData = await plotsRes.json();
+                                       setProperties(plotsData.map(p => ({
+                                          id: p.id, title: p.name, location: p.location, size: p.size, price: p.price,
+                                          status: p.status.toLowerCase(), img: p.image_url, customerName: p.customer_name
+                                       })));
+                                    } catch (err) { console.error(err); }
+                                 }}><CheckCircle size={14} color="#2ed573" /></button>
+                                 <button className="action-icon-btn" title="Pending" onClick={async () => {
+                                    try {
+                                       if (prop.isFromInventory) {
+                                          await fetch(`http://localhost:5000/api/plots/${prop.id}`, {
+                                             method: 'PUT',
+                                             headers: { 'Content-Type': 'application/json' },
+                                             body: JSON.stringify({ ...prop, name: prop.title, status: 'booked' })
+                                          });
+                                       } else {
+                                          await fetch(`http://localhost:5000/api/sold/${prop.id}`, {
+                                             method: 'PUT',
+                                             headers: { 'Content-Type': 'application/json' },
+                                             body: JSON.stringify({ ...prop, status: 'pending' })
+                                          });
+                                       }
+                                       // Refresh
+                                       const soldRes = await fetch('http://localhost:5000/api/sold/all');
+                                       const soldData = await soldRes.json();
+                                       setSoldProperties(soldData.map(p => ({ ...p, customerName: p.customer_name })));
+                                       const plotsRes = await fetch('http://localhost:5000/api/plots');
+                                       const plotsData = await plotsRes.json();
+                                       setProperties(plotsData.map(p => ({
+                                          id: p.id, title: p.name, location: p.location, size: p.size, price: p.price,
+                                          status: p.status.toLowerCase(), img: p.image_url, customerName: p.customer_name
+                                       })));
+                                    } catch (err) { console.error(err); }
+                                 }}><Clock size={14} color="#ffa502" /></button>
+                                 <button className="action-icon-btn" title="Reject" onClick={async () => {
+                                    try {
+                                       if (prop.isFromInventory) {
+                                          await fetch(`http://localhost:5000/api/plots/${prop.id}`, {
+                                             method: 'PUT',
+                                             headers: { 'Content-Type': 'application/json' },
+                                             body: JSON.stringify({ ...prop, name: prop.title, status: 'available' })
+                                          });
+                                       } else {
+                                          await fetch(`http://localhost:5000/api/sold/${prop.id}`, {
+                                             method: 'PUT',
+                                             headers: { 'Content-Type': 'application/json' },
+                                             body: JSON.stringify({ ...prop, status: 'rejected' })
+                                          });
+                                       }
+                                       // Refresh
+                                       const soldRes = await fetch('http://localhost:5000/api/sold/all');
+                                       const soldData = await soldRes.json();
+                                       setSoldProperties(soldData.map(p => ({ ...p, customerName: p.customer_name })));
+                                       const plotsRes = await fetch('http://localhost:5000/api/plots');
+                                       const plotsData = await plotsRes.json();
+                                       setProperties(plotsData.map(p => ({
+                                          id: p.id, title: p.name, location: p.location, size: p.size, price: p.price,
+                                          status: p.status.toLowerCase(), img: p.image_url, customerName: p.customer_name
+                                       })));
+                                    } catch (err) { console.error(err); }
+                                 }}><ThumbsDown size={14} color="#eb4d4b" /></button>
+                                 <button className="action-icon-btn" title="Delete" onClick={async () => {
+                                    if (window.confirm("Are you sure you want to remove this record?")) {
+                                       try {
+                                          if (prop.isFromInventory) {
+                                             await fetch(`http://localhost:5000/api/plots/${prop.id}`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ ...prop, name: prop.title, status: 'available' })
+                                             });
+                                          } else {
+                                             await fetch(`http://localhost:5000/api/sold/${prop.id}`, { method: 'DELETE' });
+                                          }
+                                          // Refresh
+                                          const soldRes = await fetch('http://localhost:5000/api/sold/all');
+                                          const soldData = await soldRes.json();
+                                          setSoldProperties(soldData.map(p => ({ ...p, customerName: p.customer_name })));
+                                          const plotsRes = await fetch('http://localhost:5000/api/plots');
+                                          const plotsData = await plotsRes.json();
+                                          setProperties(plotsData.map(p => ({
+                                             id: p.id, title: p.name, location: p.location, size: p.size, price: p.price,
+                                             status: p.status.toLowerCase(), img: p.image_url, customerName: p.customer_name
+                                          })));
+                                       } catch (err) { console.error(err); }
                                     }
                                  }}><Trash2 size={14} color="#eb4d4b" /></button>
                               </div>
@@ -1052,12 +1116,29 @@ const AdminDashboard = ({ onLogout }) => {
                                  <button className="action-icon-btn" onClick={() => setViewingSubmission(p)} title="View Details">
                                     <Eye size={16} />
                                  </button>
-                                 <button className="action-btn-pill approve" onClick={() => {
-                                    const updated = properties.map(item => item.id === p.id ? { ...item, status: 'available' } : item);
-                                    setProperties(updated);
-                                    localStorage.setItem('user_properties', JSON.stringify(updated));
+                                 <button className="action-btn-pill approve" onClick={async () => {
+                                    try {
+                                       await fetch(`http://localhost:5000/api/plots/${p.id}`, {
+                                          method: 'PUT',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ ...p, name: p.title, status: 'available' })
+                                       });
+                                       const plotsRes = await fetch('http://localhost:5000/api/plots');
+                                       const plotsData = await plotsRes.json();
+                                       setProperties(plotsData.map(item => ({
+                                          id: item.id, title: item.name, location: item.location, size: item.size, price: item.price,
+                                          status: item.status.toLowerCase(), img: item.image_url, customerName: item.customer_name
+                                       })));
+                                    } catch (err) { console.error(err); }
                                  }}><ThumbsUp size={14} /> Approve</button>
-                                 <button className="action-btn-pill reject" onClick={() => deleteProperty(p.id)}><ThumbsDown size={14} /> Reject</button>
+                                 <button className="action-btn-pill reject" onClick={async () => {
+                                    if (window.confirm("Reject this submission?")) {
+                                       try {
+                                          await fetch(`http://localhost:5000/api/plots/${p.id}`, { method: 'DELETE' });
+                                          setProperties(properties.filter(item => item.id !== p.id));
+                                       } catch (err) { console.error(err); }
+                                    }
+                                 }}><ThumbsDown size={14} /> Reject</button>
                               </div>
                            </td>
                         </tr>

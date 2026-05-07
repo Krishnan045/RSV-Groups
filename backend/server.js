@@ -10,9 +10,11 @@ app.use(express.json());
 // Routes
 const plotRoutes = require('./routes/plotRoutes');
 const leadRoutes = require('./routes/leadRoutes');
+const soldRoutes = require('./routes/soldRoutes');
 
 app.use('/api/plots', plotRoutes);
 app.use('/api/leads', leadRoutes);
+app.use('/api/sold', soldRoutes);
 
 app.get('/', (req, res) => {
   res.send('GreenField API is running...');
